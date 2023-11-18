@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "222002248733",
+    "project_id": "codeflowmiviajep3",
+    "storage_bucket": "codeflowmiviajep3.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:222002248733:android:2bcdf0f56c7ec0a0e25af4",
+        "android_client_info": {
+          "package_name": "CodeFlow.MiViaje.P3"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCQuGURcvKr27lXilzfhmixgQ15xEy1bo8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
