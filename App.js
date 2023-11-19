@@ -1,10 +1,9 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import DetailScreen from './screens/DetailScreen';
-import ListScreen from './screens/ListScreen';
-import InicioScreen from './screens/InicioScreen';
-import PlayerScreen from './screens/PlayerScreen';
+import DetailScreen from './src/screens/DetailScreen';
+import ListScreen from './src/screens/ListScreen';
+import PlayerScreen from './src/screens/PlayerScreen';
 
 const Stack = createStackNavigator();
 
@@ -24,9 +23,8 @@ const App = () => {
         }}
       >
 
-      <Stack.Screen name="VIAJE A JAPÓN" component={InicioScreen} options={{ title: 'VIAJE A JAPÓN' }} />
-        <Stack.Screen name="Listado" component={ListScreen} options={{ title: 'Listado' }} />
-        <Stack.Screen name="Detalles" component={DetailScreen} options={{ title: 'Detalles' }} />
+      <Stack.Screen name="VIAJE A JAPÓN" component={ListScreen} options={{ title: 'VIAJE A JAPÓN' }} />
+      <Stack.Screen name="DetailScreen" component={DetailScreen} options={{ title: 'Detalles' }} />
         <Stack.Screen name="Video" component={PlayerScreen} options={{ title: 'Video' }} />
       </Stack.Navigator>
     </NavigationContainer>
