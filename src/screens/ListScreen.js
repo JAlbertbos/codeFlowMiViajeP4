@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Button, FlatList, Text, TouchableOpacity, Modal, TextInput, StyleSheet } from 'react-native';
-import { getFirestore, collection, addDoc, query, getDocs } from 'firebase/firestore/lite';
+import { getFirestore, collection, addDoc, query, getDocs, deleteDoc } from 'firebase/firestore/lite';
 import { initializeApp } from 'firebase/app';
+import { AntDesign } from '@expo/vector-icons'; 
 
 const firebaseConfig = {
   apiKey: "AIzaSyCBHtoO7naEQHJYFgioJDXYsLNDKJR-X74",
@@ -30,6 +31,30 @@ const ListScreen = ({ navigation }) => {
   const [day, setDay] = useState('');
   const [accommodation, setAccommodation] = useState('');
   const [description, setDescription] = useState('');
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
+  const [cityFilter, setCityFilter] = useState('');
+  const [selectedDay, setSelectedDay] = useState('');
+
+  
+  const openFilterModal = () => {
+    setFilterModalVisible(true);
+  };
+
+  const closeFilterModal = () => {
+    setFilterModalVisible(false);
+  };
+
+  const applyFilter = () => {
+    // Aquí podrías aplicar la lógica para filtrar las ciudades según los valores en cityFilter y selectedDay
+    // Por ejemplo, podrías tener una función que filtre las ciudades y actualice la lista de ciudades mostradas
+    // fetchFilteredCities(cityFilter, selectedDay);
+    setCityFilter('');
+    setSelectedDay('');
+    setFilterModalVisible(false);
+  };
+
+
+
 
   useEffect(() => {
     fetchCities(setCities);
@@ -64,6 +89,21 @@ const ListScreen = ({ navigation }) => {
     setModalVisible(false);
   };
 
+  const deleteCity = async (cityName) => {
+    const citiesCollection = collection(db, 'cities');
+    const cityQuery = query(citiesCollection);
+    const citySnapshot = await getDocs(cityQuery);
+    citySnapshot.forEach(async (doc) => {
+      if (doc.data().name === cityName) {
+        const docRef = doc.ref; // Obtener la referencia al documento
+        await deleteDoc(docRef); // Eliminar el documento usando la referencia
+      }
+    });
+    fetchCities(setCities);
+    // Mostrar un mensaje de alerta al usuario
+    alert('Ciudad eliminada');
+  };
+
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
       <Button onPress={openModal} title="Agregar ciudad" />
@@ -71,9 +111,14 @@ const ListScreen = ({ navigation }) => {
         data={cities}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => (
-          <TouchableOpacity onPress={() => navigateToDetail(item.name)}>
-            <Text style={styles.cityText}>{item.name}</Text>
-          </TouchableOpacity>
+          <View style={styles.cityContainer}>
+            <TouchableOpacity onPress={() => navigateToDetail(item.name)}>
+              <Text style={styles.cityText}>{item.name}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => deleteCity(item.name)}>
+              <AntDesign name="delete" size={24} color="black" />
+            </TouchableOpacity>
+          </View>
         )}
       />
       <Modal
@@ -111,6 +156,29 @@ const ListScreen = ({ navigation }) => {
           <Button onPress={closeModal} title="Cerrar" />
         </View>
       </Modal>
+
+      <Button onPress={openFilterModal} title="Filtrar ciudades" />
+
+<Modal
+  animationType="slide"
+  transparent={true}
+  visible={filterModalVisible}
+  onRequestClose={closeFilterModal}
+>
+  <View style={styles.modalContainer}>
+    <TextInput
+      style={styles.input}
+      onChangeText={text => setCityFilter(text)}
+      value={cityFilter}
+      placeholder="Buscar por ciudad"
+    />
+    <Button onPress={applyFilter} title="Aplicar filtro" />
+    <Button onPress={closeFilterModal} title="Cerrar" />
+  </View>
+</Modal>
+
+
+
     </View>
   );
 };
