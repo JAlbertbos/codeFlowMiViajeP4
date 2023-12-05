@@ -1,5 +1,9 @@
+/* index.js (utiliza Firebase para inicializar la aplicación y conectarse a la base de datos) */
+
+// Importa la función `initializeApp` de la librería de Firebase
 import { initializeApp } from 'firebase/app';
 
+// Configuración de Firebase, contiene información de autenticación y conexión a la base de datos
 const firebaseConfig = {
     apiKey: "AIzaSyCBHtoO7naEQHJYFgioJDXYsLNDKJR-X74",
     authDomain: "codeflowmiviajep3.firebaseapp.com",
@@ -10,6 +14,5 @@ const firebaseConfig = {
     measurementId: "G-ZBWNWPKLK4"
   };
 
+  // Inicializa la aplicación de Firebase con la configuración provista
   const app = initializeApp(firebaseConfig);
-  
-  // Get a list of cities from your database
