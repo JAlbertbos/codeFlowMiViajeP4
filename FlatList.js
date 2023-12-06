@@ -1,13 +1,18 @@
+
+// Importa los módulos necesarios desde React y React Native, así como Firebase
 import React, { useState, useEffect } from 'react';
 import { FlatList, Text, View } from 'react-native';
 import firebase from 'firebase/app';
 import 'firebase/firestore';
 
+// Componente funcional YourComponent
 const YourComponent = () => {
+  // Define un estado para almacenar los datos obtenidos de Firebase
   const [data, setData] = useState([]);
 
+  // Hook useEffect, se ejecuta después de que el componente se monta
   useEffect(() => {
-    // Configura la conexión a Firebase
+    // Configuración de Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyCBHtoO7naEQHJYFgioJDXYsLNDKJR-X74",
         authDomain: "codeflowmiviajep3.firebaseapp.com",
@@ -18,12 +23,12 @@ const YourComponent = () => {
         measurementId: "G-ZBWNWPKLK4"
       };
 
-    // Inicializa Firebase
+    // Inicializa Firebase si no hay aplicaciones inicializadas
     if (!firebase.apps.length) {
       firebase.initializeApp(firebaseConfig);
     }
 
-    // Obtiene una referencia a la colección de retos
+    // Obtiene una referencia a la colección 
     const retosCollection = firebase.firestore().collection('retos');
 
     // Recupera todos los retos de la colección
@@ -46,11 +51,12 @@ const YourComponent = () => {
   const renderItem = ({ item }) => (
     <View>
       <Text>{item.id}</Text>
-      {/* Renderiza otros datos según tu estructura */}
+      {/* Renderiza otros datos según la estructura */}
       <Text>{item.otroCampo}</Text>
     </View>
   );
 
+  // Retorna un componente FlatList que renderiza los datos obtenidos de Firebase
   return (
     <FlatList
       data={data}
@@ -60,4 +66,5 @@ const YourComponent = () => {
   );
 };
 
+// Exporta el componente
 export default YourComponent;
