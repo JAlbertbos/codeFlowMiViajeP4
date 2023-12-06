@@ -9,8 +9,11 @@
     "web": "expo start --web"
   },
   "dependencies": {
-    "@react-native-firebase/app": "^17.4.2",
-    "@react-native-firebase/firestore": "^17.4.2",
+    "@expo/webpack-config": "^19.0.0",
+    "@firebase/storage": "^0.12.0",
+    "@react-native-firebase/app": "^18.7.1",
+    "@react-native-firebase/firestore": "^18.7.1",
+    "@react-native-picker/picker": "2.4.10",
     "@react-native/metro-config": "^0.73.2",
     "@react-navigation/native": "^6.1.9",
     "@react-navigation/stack": "^6.3.20",
@@ -18,9 +21,11 @@
     "expo-status-bar": "~1.6.0",
     "firebase": "^10.6.0",
     "react": "18.2.0",
-    "react-dom": "^18.2.0",
+    "react-dom": "18.2.0",
     "react-native": "0.72.6",
-    "react-native-web": "0.17.1"
+    "react-native-image-picker": "^7.1.0",
+    "react-native-picker-select": "^9.0.0",
+    "react-native-web": "~0.19.6"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"

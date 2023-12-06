@@ -1,4 +1,3 @@
-/* FlatList.js (*/
 
 // Importa los módulos necesarios desde React y React Native, así como Firebase
 import React, { useState, useEffect } from 'react';
@@ -29,7 +28,7 @@ const YourComponent = () => {
       firebase.initializeApp(firebaseConfig);
     }
 
-    // Obtiene una referencia a la colección de retos
+    // Obtiene una referencia a la colección 
     const retosCollection = firebase.firestore().collection('retos');
 
     // Recupera todos los retos de la colección
@@ -52,11 +51,12 @@ const YourComponent = () => {
   const renderItem = ({ item }) => (
     <View>
       <Text>{item.id}</Text>
-      {/* Renderiza otros datos según tu estructura */}
+      {/* Renderiza otros datos según la estructura */}
       <Text>{item.otroCampo}</Text>
     </View>
   );
 
+  // Retorna un componente FlatList que renderiza los datos obtenidos de Firebase
   return (
     <FlatList
       data={data}
@@ -66,4 +66,5 @@ const YourComponent = () => {
   );
 };
 
+// Exporta el componente
 export default YourComponent;
