@@ -147,10 +147,6 @@ const ListScreen = ({ navigation }) => {
 
   const navigateToDetail = (item) => {
     navigation.navigate('DetailScreen', { item });
-  // Navega hacia la pantalla de detalles cuando se selecciona una ciudad
-  const navigateToDetail = (cityName) => {
-    // Utiliza la navegación para ir a la pantalla 'DetailScreen' y pasa el nombre de la ciudad como parámetro
-    navigation.navigate('DetailScreen', { city: cityName });
   };
 
   // Abre el modal para agregar detalles de una nueva ciudad
@@ -201,7 +197,7 @@ const ListScreen = ({ navigation }) => {
                 // Vista de cada ciudad en la lista
                 <View style={styles.cityContainer}>
                     {/* Título de la ciudad, al presionarlo navega a la pantalla de detalles */}
-                    <TouchableOpacity onPress={() => navigateToDetail(item.name)}>
+                    <TouchableOpacity onPress={() => navigateToDetail(item)}>
                         <Text style={styles.cityText}>{item.name}</Text>
                     </TouchableOpacity>
 
@@ -283,9 +279,6 @@ const ListScreen = ({ navigation }) => {
     <Button onPress={closeFilterModal} title="Cerrar" />
   </View>
 </Modal>
-
-
-
     </View>
   );
 };

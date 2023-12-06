@@ -8,8 +8,9 @@ const DetailScreen = ({ route }) => {
     <View>
       <Text>Detalles del Dia {item.day}</Text>
       <Text>Nombre: {item.name}</Text>
-      <Text>Alojamiento: {item.accommodation}</Text>
+      <Text>Alojamienwto: {item.accommodation}</Text>
       <Text>Descripción: {item.description}</Text>
+      <Text>Actividades: {item.activities}</Text>
     </View>
   );
 };

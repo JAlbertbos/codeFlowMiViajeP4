@@ -23,12 +23,10 @@ const App = () => {
         screenOptions={{
           headerStyle: {
             backgroundColor: '#f4511e', // Color de fondo del encabezado
-            textAlign: 'center', // Alineación del texto en el encabezado
           },
           headerTintColor: '#fff', // Color del texto/iconos del encabezado
           headerTitleStyle: {
             fontWeight: 'bold', // Estilo del texto del encabezado
-            fontSize: '28px', // Tamaño de la fuente del texto del encabezado
           },
           headerTitleAlign: 'center', // Alineación central del título del encabezado
         }}
