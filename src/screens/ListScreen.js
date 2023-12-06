@@ -7,7 +7,7 @@ import * as ImagePicker from 'expo-image-picker';
 // Importa funciones específicas de Firestore
 import { getFirestore, collection, addDoc, query, getDocs, deleteDoc } from 'firebase/firestore/lite';
 import { initializeApp } from 'firebase/app';                                                                 // Importa la función de inicialización de Firebase
-import { getStorage, ref, uploadBytes } from '@firebase/storage';                                             // Importa funciones específicas de Firebase Storage
+import { getStorage, ref, uploadBytes, getDownloadURL } from '@firebase/storage';                                            // Importa funciones específicas de Firebase Storage
 import { AntDesign } from '@expo/vector-icons';                                                               // Importa iconos de AntDesign desde Expo
 
 
@@ -88,21 +88,30 @@ const ListScreen = ({ navigation }) => {
 
     console.log(result);
 
-    if (!result.canceled) {
+    if (!result.canceled && result.assets[0].uri) {
       setImage(result.assets[0].uri);
+      // Aquí puedes generar un nombre de archivo único para la imagen
+      const fileName = `images/${new Date().toISOString()}_${result.assets[0].uri.split('/').pop()}`;
+      const downloadURL = await uploadMedia(result.assets[0].uri, fileName);
+      console.log("URL de descarga:", downloadURL);
+      // Puedes guardar downloadURL en tu estado o base de datos si es necesario
     }
   };
 
   // Función para subir un archivo multimedia (imagen o video) al Storage de Firebase *************************************************************************************************
   const uploadMedia = async (uri, fileName) => {
-    const storage = getStorage(app);                      // Obtiene una referencia al almacenamiento de Firebase
-    const storageRef = ref(storage, fileName);            // Crea una referencia al archivo en el almacenamiento de Firebase
-    await uploadBytes(storageRef, uri);                   // Sube el archivo al almacenamiento de Firebase
-
+    const response = await fetch(uri);
+    const blob = await response.blob(); // Convierte el URI en un objeto Blob
+  
+    const storage = getStorage(app);                   // Obtiene una referencia al almacenamiento de Firebase
+    const storageRef = ref(storage, fileName);         // Crea una referencia al archivo en el almacenamiento de Firebase
+    await uploadBytes(storageRef, blob);               // Sube el Blob al almacenamiento de Firebase
+  
     // Obtiene la URL del archivo subido
     const downloadURL = await getDownloadURL(storageRef);
-    return downloadURL;                                   // Devuelve la URL del archivo subido
+    return downloadURL;                                // Devuelve la URL del archivo subido
   };
+  
   
   // Función asincrona para agregar los detalles de una ciudad a la BBDD **************************************************************************************************************
   const addCityDetails = async () => {
@@ -242,10 +251,7 @@ const ListScreen = ({ navigation }) => {
                 />
                 
                 <Button onPress={selectMedia} title="Seleccione un archivo" />
-                  {/*<View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                    <Button title="Pick an image from camera roll" onPress={selectMedia} />
-                    {image && <Image source={{ uri: image }} style={{ width: 200, height: 200 }} />}
-                  </View>*/}
+                  {image && <Image source={{ uri: image }} style={{ width: 200, height: 200 }} />}
                 {/* Botón para guardar los detalles de la nueva ciudad */}
                 <Button onPress={addCityDetails} title="Guardar detalles" />
                 {/* Botón para cerrar el modal */}
