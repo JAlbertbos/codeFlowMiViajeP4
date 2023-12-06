@@ -42,7 +42,7 @@ const ListScreen = ({ navigation }) => {
   const [name, setName] = useState('');                                 // Nombre de la ciudad
   const [day, setDay] = useState('');                                   // Día
   const [accommodation, setAccommodation] = useState('');               // Alojamiento
-  const [activities, setActivities] = useState([]);                     // Lista de actividades
+  const [activities, setActivities] = useState('');                     // Lista de actividades
   const [description, setDescription] = useState('');                   // Descripción
   const [mediaUrl, setMediaUrl] = useState('null');                     // URL del archivo multimedia (imagen o video)
   const [filterModalVisible, setFilterModalVisible] = useState(false);  // Visibilidad del modal de filtro
@@ -74,31 +74,37 @@ const ListScreen = ({ navigation }) => {
     fetchCities(setCities);
   }, []);
 
-
   // Funccion para selecionar un video o una imagen ***********************************************************************************************************************************
-  const selectMedia = async (mediaType) => {
+  const selectMedia = async () => {
     try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== 'granted') {
-        console.log('Permission denied');
-        return;
-      }
-
-      let mediaOptions = {
-        mediaTypes: mediaType === 'video' ? ImagePicker.MediaTypeOptions.Videos : ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [16, 9],
-        quality: 1,
+      const options = {
+        title: 'Seleccionar imagen',
+        storageOptions: {
+          skipBackup: true,
+          path: 'images',
+          privateDirectory: true,
+        },
+        maxWidth: 800,
+        maxHeight: 600,
+        quality: 0.8,
       };
-
-      const result = await ImagePicker.launchImageLibraryAsync(mediaOptions);
-
-      if (!result.cancelled) {
-        const mediaUri = result.uri;
-        console.log('Selected media URI:', mediaUri);
-      }
+  
+      ImagePicker.showImagePicker(options, async (response) => {
+        if (response.error) {
+          console.log('Error al seleccionar la imagen:', response.error);
+        } else if (!response.didCancel) {
+          // Obtenemos la información de la imagen seleccionada
+          const { uri, type, fileName } = response;
+  
+          // Subimos la imagen a Firebase Storage
+          const uploadedImageUrl = await uploadImage(uri, fileName);
+  
+          // Establecemos la URL de la imagen como el valor del estado mediaUrl
+          setMediaUrl(uploadedImageUrl);
+        }
+      });
     } catch (error) {
-      console.log('Error selecting media:', error);
+      console.log('Error al seleccionar la imagen:', error);
     }
   };
 
