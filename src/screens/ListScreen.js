@@ -1,8 +1,9 @@
 
 // Importa los módulos necesarios desde React y React Native
 import React, { useState, useEffect } from 'react';
-import { View, Button, FlatList, Text, TouchableOpacity, Modal, Image, TextInput, StyleSheet } from 'react-native';
-import ImagePicker from 'react-native-image-picker';
+import { View, Button, FlatList, Text, TouchableOpacity, Modal, Image, TextInput, StyleSheet, Platform } from 'react-native';
+import ImagePickerReact from 'react-native-image-picker';
+import * as ImagePicker from 'expo-image-picker';
 // Importa funciones específicas de Firestore
 import { getFirestore, collection, addDoc, query, getDocs, deleteDoc } from 'firebase/firestore/lite';
 import { initializeApp } from 'firebase/app';                                                                 // Importa la función de inicialización de Firebase
@@ -48,7 +49,8 @@ const ListScreen = ({ navigation }) => {
   const [filterModalVisible, setFilterModalVisible] = useState(false);  // Visibilidad del modal de filtro
   const [cityFilter, setCityFilter] = useState('');                     // Filtro de ciudad
   const [selectedDay, setSelectedDay] = useState('');                   // Día seleccionado
-  
+  const [image, setImage] = useState(null);
+
   // Función para abrir el modal de filtro
   const openFilterModal = () => {
     setFilterModalVisible(true);
@@ -76,35 +78,18 @@ const ListScreen = ({ navigation }) => {
 
   // Funccion para selecionar un video o una imagen ***********************************************************************************************************************************
   const selectMedia = async () => {
-    try {
-      const options = {
-        title: 'Seleccionar imagen',
-        storageOptions: {
-          skipBackup: true,
-          path: 'images',
-          privateDirectory: true,
-        },
-        maxWidth: 800,
-        maxHeight: 600,
-        quality: 0.8,
-      };
-  
-      ImagePicker.showImagePicker(options, async (response) => {
-        if (response.error) {
-          console.log('Error al seleccionar la imagen:', response.error);
-        } else if (!response.didCancel) {
-          // Obtenemos la información de la imagen seleccionada
-          const { uri, type, fileName } = response;
-  
-          // Subimos la imagen a Firebase Storage
-          const uploadedImageUrl = await uploadImage(uri, fileName);
-  
-          // Establecemos la URL de la imagen como el valor del estado mediaUrl
-          setMediaUrl(uploadedImageUrl);
-        }
-      });
-    } catch (error) {
-      console.log('Error al seleccionar la imagen:', error);
+    // No permissions request is necessary for launching the image library
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    console.log(result);
+
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
     }
   };
 
@@ -257,7 +242,10 @@ const ListScreen = ({ navigation }) => {
                 />
                 
                 <Button onPress={selectMedia} title="Seleccione un archivo" />
-
+                  {/*<View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                    <Button title="Pick an image from camera roll" onPress={selectMedia} />
+                    {image && <Image source={{ uri: image }} style={{ width: 200, height: 200 }} />}
+                  </View>*/}
                 {/* Botón para guardar los detalles de la nueva ciudad */}
                 <Button onPress={addCityDetails} title="Guardar detalles" />
                 {/* Botón para cerrar el modal */}
