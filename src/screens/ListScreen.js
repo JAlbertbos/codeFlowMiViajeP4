@@ -77,8 +77,8 @@ const ListScreen = ({ navigation }) => {
     fetchCities(setCities);
   };
 
-  const navigateToDetail = (cityName) => {
-    navigation.navigate('DetailScreen', { city: cityName });
+  const navigateToDetail = (item) => {
+    navigation.navigate('DetailScreen', { item });
   };
 
   const openModal = () => {
@@ -112,7 +112,7 @@ const ListScreen = ({ navigation }) => {
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => (
           <View style={styles.cityContainer}>
-            <TouchableOpacity onPress={() => navigateToDetail(item.name)}>
+            <TouchableOpacity onPress={() => navigateToDetail(item)}>
               <Text style={styles.cityText}>{item.name}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => deleteCity(item.name)}>
