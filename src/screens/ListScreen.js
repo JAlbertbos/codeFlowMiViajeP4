@@ -45,11 +45,13 @@ const ListScreen = ({ navigation }) => {
   const [accommodation, setAccommodation] = useState('');               // Alojamiento
   const [activities, setActivities] = useState('');                     // Lista de actividades
   const [description, setDescription] = useState('');                   // Descripción
-  const [mediaUrl, setMediaUrl] = useState('null');                     // URL del archivo multimedia (imagen o video)
+  const [mediaUrl, setMediaUrl] = useState(null);                       // URL del archivo multimedia (imagen o video)
   const [filterModalVisible, setFilterModalVisible] = useState(false);  // Visibilidad del modal de filtro
   const [cityFilter, setCityFilter] = useState('');                     // Filtro de ciudad
   const [selectedDay, setSelectedDay] = useState('');                   // Día seleccionado
-  const [image, setImage] = useState(null);
+  const [image, setImage] = useState(null);                             // Previsualización de la imagen 
+  const [mediaUri, setMediaUri] = useState(null);                       // Identificador del archivo multimedia
+  const [mediaFileName, setMediaFileName] = useState(null);             // Nombre para el archivo multimedia
 
   // Función para abrir el modal de filtro
   const openFilterModal = () => {
@@ -78,47 +80,55 @@ const ListScreen = ({ navigation }) => {
 
   // Funccion para selecionar un video o una imagen ***********************************************************************************************************************************
   const selectMedia = async () => {
-    // No permissions request is necessary for launching the image library
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
+  // Selecciona un archivo multimedia de la biblioteca
+  let result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.All,     // Tipos de medios disponibles (todos en este caso)
+    allowsEditing: true,                              // Permite editar la imagen seleccionada
+    aspect: [4, 3],                                   // Proporción de aspecto (4:3 en este caso)
+    quality: 1,                                       // Calidad de la imagen (de 0 a 1)
     });
 
-    console.log(result);
-
     if (!result.canceled && result.assets[0].uri) {
+      // Establece la URI seleccionada en el estado (por ejemplo, para mostrarla en la interfaz)
       setImage(result.assets[0].uri);
-      // Aquí puedes generar un nombre de archivo único para la imagen
+  
+      // Genera un nombre de archivo único para la imagen
       const fileName = `images/${new Date().toISOString()}_${result.assets[0].uri.split('/').pop()}`;
-      const downloadURL = await uploadMedia(result.assets[0].uri, fileName);
-      console.log("URL de descarga:", downloadURL);
-      // Puedes guardar downloadURL en tu estado o base de datos si es necesario
+  
+      // Actualizar el estado con la uri y el nombre del archivo
+      setMediaUri(result.assets[0].uri);
+      setMediaFileName(fileName);
     }
   };
 
   // Función para subir un archivo multimedia (imagen o video) al Storage de Firebase *************************************************************************************************
   const uploadMedia = async (uri, fileName) => {
-    const response = await fetch(uri);
-    const blob = await response.blob(); // Convierte el URI en un objeto Blob
-  
-    const storage = getStorage(app);                   // Obtiene una referencia al almacenamiento de Firebase
-    const storageRef = ref(storage, fileName);         // Crea una referencia al archivo en el almacenamiento de Firebase
-    await uploadBytes(storageRef, blob);               // Sube el Blob al almacenamiento de Firebase
-  
-    // Obtiene la URL del archivo subido
-    const downloadURL = await getDownloadURL(storageRef);
-    return downloadURL;                                // Devuelve la URL del archivo subido
+    const response = await fetch(uri);                    // Obtiene el archivo desde la URI
+    const blob = await response.blob();                   // Convierte el URI en un objeto Blob
+    const storage = getStorage(app);                      // Obtiene una referencia al almacenamiento de Firebase
+    const storageRef = ref(storage, fileName);            // Crea una referencia al archivo en el almacenamiento de Firebase
+    await uploadBytes(storageRef, blob);                  // Sube el Blob al almacenamiento de Firebase
+    const downloadURL = await getDownloadURL(storageRef); // Obtiene la URL del archivo subido
+    return downloadURL;                                   // Devuelve la URL del archivo subido
   };
-  
   
   // Función asincrona para agregar los detalles de una ciudad a la BBDD **************************************************************************************************************
   const addCityDetails = async () => {
-    let uploadedMediaUrl = '';
-    if (mediaUrl) {
-      // Si hay un archivo multimedia (imagen o video) seleccionado, súbelo al Storage de Firebase
-      uploadedMediaUrl = await uploadMedia(mediaUrl, 'media'); // 'media' es el nombre que recibirá el archivo en el Storage
+    let url = '';
+
+    if (!name || !day || !accommodation || !activities || !description) {
+      // Si falta algún campo, no continuar y mostrar un mensaje de error o manejarlo según necesites
+      alert('Por favor, completa todos los campos');
+      return;
+    }
+    
+    // Subir la imagen o video antes de agregar la información de la ciudad
+    if (mediaUri && mediaFileName) {
+      const downloadURL = await uploadMedia(mediaUri, mediaFileName);
+      setMediaFileName(null);     // Limpiar el estado de mediaFileName
+      setMediaUri(null);          // Limpiar el estado de mediaUri
+      console.log(downloadURL);
+      url = downloadURL;
     }
     const citiesCollection = collection(db, 'cities');     // Colección de ciudades en la base de datos
     const newCityData = {                                  // Objeto con los detalles de la nueva ciudad a agregar
@@ -127,8 +137,9 @@ const ListScreen = ({ navigation }) => {
       accommodation,
       activities,
       description,
-      mediaUrl: uploadedMediaUrl,
+      mediaUrl: url,
     };
+    
     // Agrega el objeto newCityData a la colección citiesCollection en la base de datos
     await addDoc(citiesCollection, newCityData);
     
@@ -140,6 +151,7 @@ const ListScreen = ({ navigation }) => {
     setActivities('');
     setDescription('');
     setMediaUrl('');
+    setImage(null);
     
     // Actualiza la lista de ciudades mostradas llamando a la función fetchCities
     fetchCities(setCities);
@@ -186,99 +198,101 @@ const ListScreen = ({ navigation }) => {
   return (
     // Vista principal del componente
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        {/* Botón para abrir el modal para agregar una nueva ciudad */}
-        <Button onPress={openModal} title="Agregar ciudad" />
+      {/* Botón para abrir el modal para agregar una nueva ciudad */}
+      <Button onPress={openModal} title="Agregar ciudad" />
 
-        {/* Lista de ciudades */}
-        <FlatList
-            data={cities}
-            keyExtractor={(item, index) => index.toString()}
-            renderItem={({ item }) => (
-                // Vista de cada ciudad en la lista
-                <View style={styles.cityContainer}>
-                    {/* Título de la ciudad, al presionarlo navega a la pantalla de detalles */}
-                    <TouchableOpacity onPress={() => navigateToDetail(item)}>
-                        <Text style={styles.cityText}>{item.name}</Text>
-                    </TouchableOpacity>
+      {/* Lista de ciudades */}
+      <FlatList
+        data={cities}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item }) => (
+          // Vista de cada ciudad en la lista
+          <View style={styles.cityContainer}>
+            {/* Título de la ciudad, al presionarlo navega a la pantalla de detalles */}
+            <TouchableOpacity onPress={() => navigateToDetail(item)}>
+              <Text style={styles.cityText}>{item.name}</Text>
+            </TouchableOpacity>
 
-                    {/* Botón para eliminar la ciudad */}
-                    <TouchableOpacity onPress={() => deleteCity(item.name)}>
-                        <AntDesign name="delete" size={24} color="black" />
-                    </TouchableOpacity>
-                </View>
-            )}
-        />
+            {/* Botón para eliminar la ciudad */}
+            <TouchableOpacity onPress={() => deleteCity(item.name)}>
+              <AntDesign name="delete" size={24} color="black" />
+            </TouchableOpacity>
+          </View>
+        )}
+      />
 
-        {/* Modal para agregar una nueva ciudad */}
-        <Modal
-            animationType="slide"
-            transparent={true}
-            visible={modalVisible}
-            onRequestClose={closeModal}
+      {/* Modal para agregar una nueva ciudad */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={closeModal}
         >
-            <View style={styles.modalContainer}>
-                {/* Campos para agregar detalles de la nueva ciudad */}
-                <TextInput
-                    style={styles.input}
-                    onChangeText={text => setName(text)}
-                    value={name}
-                    placeholder="Ciudad"
-                />
-                <TextInput
-                    style={styles.input}
-                    onChangeText={text => setDay(text)}
-                    value={day}
-                    placeholder="Día"
-                />
-                <TextInput
-                    style={styles.input}
-                    onChangeText={text => setAccommodation(text)}
-                    value={accommodation}
-                    placeholder="Alojamiento"
-                />
-                <TextInput
-                    style={styles.input}
-                    onChangeText={text => setActivities(text)}
-                    value={activities}
-                    placeholder="Actividades"
-                />
-                <TextInput
-                    style={styles.descriptionInput}
-                    onChangeText={text => setDescription(text)}
-                    value={description}
-                    placeholder="Descripción"
-                    multiline={true} 
-                />
-                
-                <Button onPress={selectMedia} title="Seleccione un archivo" />
-                  {image && <Image source={{ uri: image }} style={{ width: 200, height: 200 }} />}
-                {/* Botón para guardar los detalles de la nueva ciudad */}
-                <Button onPress={addCityDetails} title="Guardar detalles" />
-                {/* Botón para cerrar el modal */}
-                <Button onPress={closeModal} title="Cerrar" />
-            </View>
-        </Modal>
+        <View style={styles.modalContainer}>
+          {/* Campos para agregar detalles de la nueva ciudad */}
+          <TextInput
+              style={styles.input}
+              onChangeText={text => setName(text)}
+              value={name}
+              placeholder="Ciudad"
+          />
+          <TextInput
+              style={styles.input}
+              onChangeText={text => setDay(text)}
+              value={day}
+              placeholder="Día"
+          />
+          <TextInput
+              style={styles.input}
+              onChangeText={text => setAccommodation(text)}
+              value={accommodation}
+              placeholder="Alojamiento"
+          />
+          <TextInput
+              style={styles.input}
+              onChangeText={text => setActivities(text)}
+              value={activities}
+              placeholder="Actividades"
+          />
+          <TextInput
+              style={styles.descriptionInput}
+              onChangeText={text => setDescription(text)}
+              value={description}
+              placeholder="Descripción"
+              multiline={true} 
+          />
+          
+          <Button onPress={selectMedia} title="Seleccione un archivo" />
+            {image && <Image source={{ uri: image }} style={{ width: 200, height: 200 }} />}
 
-        {/* Botón para abrir el modal de filtro */}
-        <Button onPress={openFilterModal} title="Filtrar ciudades" />
+          {/* Botón para guardar los detalles de la nueva ciudad */}
+          <Button onPress={addCityDetails} title="Guardar detalles" />
 
-<Modal
-  animationType="slide"
-  transparent={true}
-  visible={filterModalVisible}
-  onRequestClose={closeFilterModal}
->
-  <View style={styles.modalContainer}>
-    <TextInput
-      style={styles.input}
-      onChangeText={text => setCityFilter(text)}
-      value={cityFilter}
-      placeholder="Buscar por ciudad"
-    />
-    <Button onPress={applyFilter} title="Aplicar filtro" />
-    <Button onPress={closeFilterModal} title="Cerrar" />
-  </View>
-</Modal>
+          {/* Botón para cerrar el modal */}
+          <Button onPress={closeModal} title="Cerrar" />
+        </View>
+      </Modal>
+
+      {/* Botón para abrir el modal de filtro */}
+      <Button onPress={openFilterModal} title="Filtrar ciudades" />
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={filterModalVisible}
+        onRequestClose={closeFilterModal}
+        > 
+        <View style={styles.modalContainer}>
+          <TextInput
+            style={styles.input}
+            onChangeText={text => setCityFilter(text)}
+            value={cityFilter}
+            placeholder="Buscar por ciudad"
+          />
+          <Button onPress={applyFilter} title="Aplicar filtro" />
+          <Button onPress={closeFilterModal} title="Cerrar" />
+        </View>
+      </Modal>
     </View>
   );
 };
