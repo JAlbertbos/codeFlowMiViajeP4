@@ -78,6 +78,9 @@ const ListScreen = ({ navigation }) => {
     fetchCities(setCities);
   }, []);
 
+  // Ordena las ciudades por el número de día
+  const sortedCities = [...cities].sort((a, b) => a.day - b.day);
+  
   // Funccion para selecionar un video o una imagen ***********************************************************************************************************************************
   const selectMedia = async () => {
   // Selecciona un archivo multimedia de la biblioteca
@@ -91,14 +94,29 @@ const ListScreen = ({ navigation }) => {
     if (!result.canceled && result.assets[0].uri) {
       // Establece la URI seleccionada en el estado (por ejemplo, para mostrarla en la interfaz)
       setImage(result.assets[0].uri);
-  
-      // Genera un nombre de archivo único para la imagen
-      const fileName = `images/${new Date().toISOString()}_${result.assets[0].uri.split('/').pop()}`;
-  
-      // Actualizar el estado con la uri y el nombre del archivo
-      setMediaUri(result.assets[0].uri);
-      setMediaFileName(fileName);
-    }
+      if (result.assets[0].uri.startsWith('data:image/')) {
+        console.log('Es una imagen');
+        const fileName = `images/${new Date().toISOString()}_${result.assets[0].uri.split('/').pop()}`;   // Genera un nombre de archivo único para la imagen con la ultima parte del uri
+        
+        // Actualizar el estado con la uri y el nombre del archivo
+        setMediaUri(result.assets[0].uri);
+        setMediaFileName(fileName);
+        console.log(fileName);
+
+      } else if (result.assets[0].uri.startsWith('data:video/')) {
+        console.log('Es un video');
+        const fileName = `videos/${new Date().toISOString()}_${result.assets[0].uri.split('/').pop()}`;   // Genera un nombre de archivo único para la imagen con la ultima parte del uri
+        
+        // Actualizar el estado con la uri y el nombre del archivo
+        setMediaUri(result.assets[0].uri);
+        setMediaFileName(fileName);
+        console.log(fileName);
+
+      } else {
+        // Otro tipo de archivo 
+        console.log('Otro tipo de archivo');
+      }
+    }  
   };
 
   // Función para subir un archivo multimedia (imagen o video) al Storage de Firebase *************************************************************************************************
@@ -195,31 +213,78 @@ const ListScreen = ({ navigation }) => {
     alert('Ciudad eliminada');
   };
 
+  // Restablecer los campos del modal
+  const resetFields = () => {
+    setName('');
+    setDay('');
+    setAccommodation('');
+    setActivities('');
+    setDescription('');
+    setMediaUri(null);
+    setMediaFileName(null);
+    setImage(null);
+  };
+
   return (
     // Vista principal del componente
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      {/* Botón para abrir el modal para agregar una nueva ciudad */}
-      <Button onPress={openModal} title="Agregar ciudad" />
+    <View style={{ flex: 1, flexDirection: 'row', margin: 30 }}>
+      
+      {/* Columna Izquierda */}
+      <View style={{ flex: 1, alignItems: 'left' }}>
+        <TouchableOpacity onPress={openModal} style={styles.button}>
+          <Text style={styles.buttonText}>Agregar ciudad</Text>
+        </TouchableOpacity>
 
-      {/* Lista de ciudades */}
-      <FlatList
-        data={cities}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => (
-          // Vista de cada ciudad en la lista
-          <View style={styles.cityContainer}>
-            {/* Título de la ciudad, al presionarlo navega a la pantalla de detalles */}
-            <TouchableOpacity onPress={() => navigateToDetail(item)}>
-              <Text style={styles.cityText}>{item.name}</Text>
-            </TouchableOpacity>
+        <FlatList
+          data={sortedCities}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={({ item }) => (
+            <View style={{ marginTop: 10, height: 45 }}>
+              <TouchableOpacity onPress={() => navigateToDetail(item)}>
+                <Text style={styles.cityText}>Día {item.day} - {item.name}</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        />
+      </View>
 
-            {/* Botón para eliminar la ciudad */}
-            <TouchableOpacity onPress={() => deleteCity(item.name)}>
-              <AntDesign name="delete" size={24} color="black" />
-            </TouchableOpacity>
+      {/* Columna Derecha */}
+      <View style={{ flex: 1, alignItems: 'center'}}>
+        <TouchableOpacity onPress={openFilterModal} style={styles.button}>
+          <Text style={styles.buttonText}>Filtrar ciudad</Text>
+        </TouchableOpacity>
+
+        {/* Botón de editar y eliminar */}
+          {sortedCities.map((item, index) => (
+            <View style={{ flexDirection: 'row', marginTop: 10, height: 45 }}>
+              <TouchableOpacity onPress={() => navigateToDetail(item)}>
+                <AntDesign name="edit" size={23} color="black" style={{ marginTop: 3,  marginRight: 40}} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => deleteCity(item.name)} key={index}  >
+                <AntDesign name="delete" size={23} color="black"  style={{ marginTop: 3, marginLeft: 40 }}/>
+              </TouchableOpacity>
+            </View>
+          ))}
+        
+        {/* Contenido del modal de filtro */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={filterModalVisible}
+          onRequestClose={closeFilterModal}
+        >
+          <View style={styles.modalContainer}>
+            <TextInput
+              style={styles.input}
+              onChangeText={text => setCityFilter(text)}
+              value={cityFilter}
+              placeholder="Buscar por ciudad"
+            />
+            <Button onPress={applyFilter} title="Aplicar filtro" />
+            <Button onPress={closeFilterModal} title="Cerrar" />
           </View>
-        )}
-      />
+        </Modal>
+      </View>
 
       {/* Modal para agregar una nueva ciudad */}
       <Modal
@@ -229,6 +294,11 @@ const ListScreen = ({ navigation }) => {
         onRequestClose={closeModal}
         >
         <View style={styles.modalContainer}>
+          {/* Botón para cerrar el modal */}
+          <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
+            <AntDesign name="close" size={20} color="white" />
+          </TouchableOpacity>
+          
           {/* Campos para agregar detalles de la nueva ciudad */}
           <TextInput
               style={styles.input}
@@ -261,48 +331,41 @@ const ListScreen = ({ navigation }) => {
               placeholder="Descripción"
               multiline={true} 
           />
-          
-          <Button onPress={selectMedia} title="Seleccione un archivo" />
-            {image && <Image source={{ uri: image }} style={{ width: 200, height: 200 }} />}
+
+          {/* Botón para seleccionar un archivo */}
+          <TouchableOpacity onPress={selectMedia} style={[styles.buttonModal, { marginBottom: 10 }]}>
+            <Text style={styles.buttonText}>Seleccionar archivo</Text>
+          </TouchableOpacity>
+          {mediaUri && mediaUri.startsWith('data:image/') && (
+            <Image source={{ uri: mediaUri }} style={{ width: 180, height: 150 }} />                        // Imagen previsualizada que se quiere subir
+          )}
+          {mediaUri && mediaUri.startsWith('data:video/') && (
+            <Image source={require('../../assets/video2.jpg')} style={{ width: 180, height: 150 }} />     // Imagen predetermianda para los videos
+          )}
 
           {/* Botón para guardar los detalles de la nueva ciudad */}
-          <Button onPress={addCityDetails} title="Guardar detalles" />
+          <TouchableOpacity onPress={addCityDetails} style={[styles.buttonModal, { marginTop: 10 }]}>
+            <Text style={styles.buttonText}>Guardar registro </Text>
+          </TouchableOpacity>
 
-          {/* Botón para cerrar el modal */}
-          <Button onPress={closeModal} title="Cerrar" />
+          <TouchableOpacity onPress={resetFields} style={[styles.buttonModal, { position: 'absolute', bottom: 20 }]}>
+            <Text style={styles.buttonText}>Restablecer</Text>
+          </TouchableOpacity>
         </View>
       </Modal>
 
-      {/* Botón para abrir el modal de filtro */}
-      <Button onPress={openFilterModal} title="Filtrar ciudades" />
-
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={filterModalVisible}
-        onRequestClose={closeFilterModal}
-        > 
-        <View style={styles.modalContainer}>
-          <TextInput
-            style={styles.input}
-            onChangeText={text => setCityFilter(text)}
-            value={cityFilter}
-            placeholder="Buscar por ciudad"
-          />
-          <Button onPress={applyFilter} title="Aplicar filtro" />
-          <Button onPress={closeFilterModal} title="Cerrar" />
-        </View>
-      </Modal>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  cityContainer: {
+    marginTop: 30,
+  },
   cityText: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: 'bold',
-    marginVertical: 10,
-    paddingHorizontal: 20,
+    marginVertical: 5, 
   },
   modalContainer: {
     flex: 1,
@@ -320,7 +383,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   descriptionInput: {
-    height: 100, // Aumenta la altura para la descripción
+    height: 100, 
     borderColor: 'gray',
     borderWidth: 1,
     marginBottom: 10,
@@ -328,6 +391,39 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     paddingHorizontal: 10,
     textAlignVertical: 'top',
+  },
+  button: {
+    width: 140,
+    backgroundColor: '#565656', 
+    paddingVertical: 10,
+    paddingHorizontal: 5,
+    borderRadius: 5,
+    margin: 5,
+    marginBottom: 35,
+  },
+  buttonModal: {
+    width: 200,
+    backgroundColor: '#565656', 
+    paddingVertical: 10,
+    paddingHorizontal: 5,
+    borderRadius: 5,
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    backgroundColor: 'red',
+    borderRadius: 20,
+    width: 30,
+    height: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonText: {
+    color: 'white',
+    textAlign: 'center',
+    textTransform: 'uppercase',
+    fontWeight: '500'
   },
 });
 
