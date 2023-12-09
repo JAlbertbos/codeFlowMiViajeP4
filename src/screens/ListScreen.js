@@ -1,13 +1,12 @@
 
 // Importa los módulos necesarios desde React y React Native
 import React, { useState, useEffect } from 'react';
-import { View, Button, FlatList, Text, TouchableOpacity, Modal, Image, TextInput, StyleSheet, Platform } from 'react-native';
-import ImagePickerReact from 'react-native-image-picker';
+import { View, Button, FlatList, Text, TouchableOpacity, Modal, Image, TextInput, StyleSheet, Keyboard, Platform, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 // Importa funciones específicas de Firestore
 import { getFirestore, collection, addDoc, query, getDocs, deleteDoc } from 'firebase/firestore/lite';
 import { initializeApp } from 'firebase/app';                                                                 // Importa la función de inicialización de Firebase
-import { getStorage, ref, uploadBytes, getDownloadURL } from '@firebase/storage';                                            // Importa funciones específicas de Firebase Storage
+import { getStorage, ref, uploadBytes, getDownloadURL } from '@firebase/storage';                             // Importa funciones específicas de Firebase Storage
 import { AntDesign } from '@expo/vector-icons';                                                               // Importa iconos de AntDesign desde Expo
 
 
@@ -29,10 +28,10 @@ const db = getFirestore(app);
 
 // Función asincrónica para obtener datos de la colección 'cities' de Firestore
 const fetchCities = async (setCities) => {
-  const citiesCollection = collection(db, 'cities');          // Obtiene una referencia a la colección 'cities' en Firestore
-  const citySnapshot = await getDocs(citiesCollection);       // Obtiene una instantánea de los documentos en la colección 'cities'
-  const cityList = citySnapshot.docs.map(doc => doc.data());  // Mapea los datos de los documentos en la instantánea a una matriz y extrae los datos de cada documento
-  setCities(cityList);                                        // Actualiza el estado de las ciudades con la lista de datos obtenida de Firestore
+  const citiesCollection = collection(db, 'cities');                    // Obtiene una referencia a la colección 'cities' en Firestore
+  const citySnapshot = await getDocs(citiesCollection);                 // Obtiene una instantánea de los documentos en la colección 'cities'
+  const cityList = citySnapshot.docs.map(doc => doc.data());            // Mapea los datos de los documentos en la instantánea a una matriz y extrae los datos de cada documento
+  setCities(cityList);                                                  // Actualiza el estado de las ciudades con la lista de datos obtenida de Firestore
 };
 
 // Se utiliza el componente ListScreen como una función que recibe las propiedades de navegación 
@@ -40,6 +39,7 @@ const ListScreen = ({ navigation }) => {
   // Estados para manejar los datos y la interfaz de usuario
   const [cities, setCities] = useState([]);                             // Lista de ciudades
   const [modalVisible, setModalVisible] = useState(false);              // Visibilidad del modal
+  const [keyboardVisible, setKeyboardVisible] = useState(false);        
   const [name, setName] = useState('');                                 // Nombre de la ciudad
   const [day, setDay] = useState('');                                   // Día
   const [accommodation, setAccommodation] = useState('');               // Alojamiento
@@ -60,17 +60,44 @@ const ListScreen = ({ navigation }) => {
 
   // Función para cerrar el modal de filtro
   const closeFilterModal = () => {
+    setCities(sortedCities);
     setFilterModalVisible(false);
   };
 
+  // Ordena las ciudades por el número de día
+  const sortedCities = [...cities].sort((a, b) => a.day - b.day);
+
   // Función para aplicar el filtro
   const applyFilter = () => {
-    // Aquí podrías aplicar la lógica para filtrar las ciudades según los valores en cityFilter y selectedDay
-    // Por ejemplo, podrías tener una función que filtre las ciudades y actualice la lista de ciudades mostradas
-    // fetchFilteredCities(cityFilter, selectedDay);
+    
+    if (cityFilter.trim() === '') {
+      alert('Por favor, introduce la ciudad que deseas filtrar!');
+      return;
+    }    
+
+    // Filtrar la lista de ciudades basándose en el nombre introducido
+    const filteredCity = cities.find(city => city.name.toLowerCase() === cityFilter.toLowerCase());
+
+
+    // Verificar si se encontró una ciudad que coincida con el filtro
+    if (filteredCity) {
+      // Actualizar la lista de ciudades mostradas con la ciudad filtrada
+      setCities([filteredCity]);
+    } else {
+      alert('No se encontró ninguna ciudad que coincida');
+      setCityFilter('');
+      return;
+    }
+
+    // Limpiar los valores de los filtros y cerrar el modal
     setCityFilter('');
-    setSelectedDay('');
     setFilterModalVisible(false);
+  };
+
+  // Función para restablecer la lista de ciudades 
+  const resetFilter = () => {
+    fetchCities(setCities);
+    setCities(sortedCities);
   };
 
   // Efecto para obtener los datos de la colección 'cities' de Firestore
@@ -78,21 +105,44 @@ const ListScreen = ({ navigation }) => {
     fetchCities(setCities);
   }, []);
 
-  // Ordena las ciudades por el número de día
-  const sortedCities = [...cities].sort((a, b) => a.day - b.day);
+  // Efecto para detectar si el teclado está visible o no
+  useEffect(() => {
+    // Agrega un listener para el evento de que el teclado se muestre
+    const keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      () => {
+        setKeyboardVisible(true); // Establece el estado para indicar que el teclado está visible
+      }
+    );
   
+    // Agrega un listener para el evento de que el teclado se oculte
+    const keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      () => {
+        setKeyboardVisible(false); // Establece el estado para indicar que el teclado está oculto
+      }
+    );
+  
+    // Se ejecuta cuando el componente se desmonta o se actualiza
+    return () => {
+      // Elimina los listeners cuando el componente se desmonta o se actualiza
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
+  }, []);
+
   // Funccion para selecionar un video o una imagen ***********************************************************************************************************************************
   const selectMedia = async () => {
   // Selecciona un archivo multimedia de la biblioteca
   let result = await ImagePicker.launchImageLibraryAsync({
     mediaTypes: ImagePicker.MediaTypeOptions.All,     // Tipos de medios disponibles (todos en este caso)
     allowsEditing: true,                              // Permite editar la imagen seleccionada
-    aspect: [4, 3],                                   // Proporción de aspecto (4:3 en este caso)
-    quality: 1,                                       // Calidad de la imagen (de 0 a 1)
+    aspect: [4, 3],                                   // Proporción de aspecto 
+    quality: 1,                                       // Calidad de la imagen 
     });
 
     if (!result.canceled && result.assets[0].uri) {
-      // Establece la URI seleccionada en el estado (por ejemplo, para mostrarla en la interfaz)
+      // Establece la URI seleccionada en el estado 
       setImage(result.assets[0].uri);
       if (result.assets[0].uri.startsWith('data:image/')) {
         console.log('Es una imagen');
@@ -145,7 +195,6 @@ const ListScreen = ({ navigation }) => {
       const downloadURL = await uploadMedia(mediaUri, mediaFileName);
       setMediaFileName(null);     // Limpiar el estado de mediaFileName
       setMediaUri(null);          // Limpiar el estado de mediaUri
-      console.log(downloadURL);
       url = downloadURL;
     }
     const citiesCollection = collection(db, 'cities');     // Colección de ciudades en la base de datos
@@ -175,6 +224,7 @@ const ListScreen = ({ navigation }) => {
     fetchCities(setCities);
   };
 
+  // Función para navegar a la pantalla de detalles de una ciudad
   const navigateToDetail = (item) => {
     navigation.navigate('DetailScreen', { item });
   };
@@ -227,11 +277,11 @@ const ListScreen = ({ navigation }) => {
 
   return (
     // Vista principal del componente
-    <View style={{ flex: 1, flexDirection: 'row', margin: 30 }}>
+    <View style={{ flex: 1, flexDirection: 'row', marginTop: 30 }}>
       
       {/* Columna Izquierda */}
-      <View style={{ flex: 1, alignItems: 'left' }}>
-        <TouchableOpacity onPress={openModal} style={styles.button}>
+      <View style={{ flex: 1, alignItems: 'center' }}>
+        <TouchableOpacity onPress={openModal} style={[ styles.button, { marginBottom: 35, alignItems: 'center' } ]}>
           <Text style={styles.buttonText}>Agregar ciudad</Text>
         </TouchableOpacity>
 
@@ -250,17 +300,17 @@ const ListScreen = ({ navigation }) => {
 
       {/* Columna Derecha */}
       <View style={{ flex: 1, alignItems: 'center'}}>
-        <TouchableOpacity onPress={openFilterModal} style={styles.button}>
+        <TouchableOpacity onPress={openFilterModal} style={[ styles.button, { marginBottom: 35, alignItems: 'center' } ]}>
           <Text style={styles.buttonText}>Filtrar ciudad</Text>
         </TouchableOpacity>
 
         {/* Botón de editar y eliminar */}
           {sortedCities.map((item, index) => (
-            <View style={{ flexDirection: 'row', marginTop: 10, height: 45 }}>
+            <View key={index} style={{ flexDirection: 'row', marginTop: 10, height: 45 }}>
               <TouchableOpacity onPress={() => navigateToDetail(item)}>
-                <AntDesign name="edit" size={23} color="black" style={{ marginTop: 3,  marginRight: 40}} />
+                <AntDesign name="edit" size={23} color="black" style={{ marginTop: 4,  marginRight: 40}} />
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => deleteCity(item.name)} key={index}  >
+              <TouchableOpacity onPress={() => deleteCity(item.name)} >
                 <AntDesign name="delete" size={23} color="black"  style={{ marginTop: 3, marginLeft: 40 }}/>
               </TouchableOpacity>
             </View>
@@ -272,16 +322,29 @@ const ListScreen = ({ navigation }) => {
           transparent={true}
           visible={filterModalVisible}
           onRequestClose={closeFilterModal}
-        >
+          >
           <View style={styles.modalContainer}>
+          {/* Botón para cerrar el modal */}
+            <TouchableOpacity onPress={closeFilterModal} style={styles.closeButton}>
+              <AntDesign name="close" size={20} color="white" />
+            </TouchableOpacity>
+
+            {/* Campo para aplicar un filtro por ciudad*/}
             <TextInput
               style={styles.input}
               onChangeText={text => setCityFilter(text)}
               value={cityFilter}
-              placeholder="Buscar por ciudad"
+              placeholder="Introduce una ciudad"
             />
-            <Button onPress={applyFilter} title="Aplicar filtro" />
-            <Button onPress={closeFilterModal} title="Cerrar" />
+
+            {/* Botón para aplicar el filtro */}
+            <TouchableOpacity onPress={applyFilter} style={[styles.buttonModal, { marginBottom: 10 }]}>
+              <Text style={styles.buttonText}>Aplicar filtro</Text>
+            </TouchableOpacity>
+            {/* Botón para aplicar el filtro */}
+            <TouchableOpacity onPress={resetFilter} style={[styles.buttonModal, { position: 'absolute', bottom: 20 },]}>
+              <Text style={styles.buttonText}>Restablecer</Text>
+            </TouchableOpacity>
           </View>
         </Modal>
       </View>
@@ -340,7 +403,7 @@ const ListScreen = ({ navigation }) => {
             <Image source={{ uri: mediaUri }} style={{ width: 180, height: 150 }} />                        // Imagen previsualizada que se quiere subir
           )}
           {mediaUri && mediaUri.startsWith('data:video/') && (
-            <Image source={require('../../assets/video2.jpg')} style={{ width: 180, height: 150 }} />     // Imagen predetermianda para los videos
+            <Image source={require('../../assets/video2.jpg')} style={{ width: 180, height: 150 }} />       // Imagen predetermianda para los videos
           )}
 
           {/* Botón para guardar los detalles de la nueva ciudad */}
@@ -348,20 +411,19 @@ const ListScreen = ({ navigation }) => {
             <Text style={styles.buttonText}>Guardar registro </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={resetFields} style={[styles.buttonModal, { position: 'absolute', bottom: 20 }]}>
-            <Text style={styles.buttonText}>Restablecer</Text>
-          </TouchableOpacity>
+          {/* Botón para restablecer los campos del modal */}
+          {!keyboardVisible && (
+            <TouchableOpacity onPress={resetFields} style={[ styles.buttonModal, { position: 'absolute', bottom: 20 },]}>
+              <Text style={styles.buttonText}>Restablecer</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </Modal>
-
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  cityContainer: {
-    marginTop: 30,
-  },
   cityText: {
     fontSize: 17,
     fontWeight: 'bold',
@@ -377,7 +439,7 @@ const styles = StyleSheet.create({
     height: 40,
     borderColor: 'gray',
     borderWidth: 1,
-    marginBottom: 10,
+    marginBottom: 12,
     width: 200,
     backgroundColor: '#fff',
     paddingHorizontal: 10,
@@ -399,7 +461,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
     borderRadius: 5,
     margin: 5,
-    marginBottom: 35,
   },
   buttonModal: {
     width: 200,
