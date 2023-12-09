@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ScrollView, View, Button, Text, Modal, TextInput, StyleSheet, TouchableOpacity, Image, Keyboard} from 'react-native';
+import { ScrollView, View, Button, Text, Modal, TextInput, StyleSheet, TouchableOpacity, Image, Keyboard, Dimensions} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { getFirestore, collection, addDoc, doc, setDoc, query, where, getDocs, getDoc, deleteDoc } from 'firebase/firestore/lite';
 import { getStorage, ref, uploadBytes, getDownloadURL } from '@firebase/storage'; 
@@ -31,8 +31,8 @@ const fetchCities = async (setCities) => {
 
 // Se utiliza el componente DetailScreen como una función que recibe las propiedades de navegacion y ruta
 const DetailScreen = ({ route, navigation }) => {
-  const [cities, setCities] = useState([]);                              // Lista de ciudades
   const { item } = route.params || {};                                   // Obtiene los parámetros de la ruta (si existen)
+  const [cities, setCities] = useState([]);                              // Lista de ciudades
   const [modalVisible, setModalVisible] = useState(false);               // Estado para controlar la visibilidad del modal
   const [name, setName] = useState('');                                  // Estado para el campo 'name'
   const [day, setDay] = useState('');                                    // Estado para el campo 'day'
@@ -45,6 +45,8 @@ const DetailScreen = ({ route, navigation }) => {
   const [mediaFileName, setMediaFileName] = useState(null);              // Nombre para el archivo multimedia
   const [currentCity, setCurrentCity] = useState(item);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [zoomed, setZoomed] = useState(false);
+  const [imageUrl, setImageUrl] = useState(null);
 
   // Efecto para detectar si el teclado está visible o no
   useEffect(() => {
@@ -161,8 +163,6 @@ const DetailScreen = ({ route, navigation }) => {
     setActivities('');
     setDescription('');
     
-    // Navega a otra pantalla si es necesario
-    // navigation.navigate('ListScreen');
   };
   
   // Función para encontrar el ID de una ciudad por su nombre
@@ -210,6 +210,11 @@ const DetailScreen = ({ route, navigation }) => {
   // Función para navegar a la pantalla de detalles de una ciudad
   const navigateToPlayer = (currentCity) => {
   navigation.navigate('PlayerScreen', { currentCity });
+  };
+
+  const toggleZoom = (url) => {
+    setImageUrl(url);
+    setZoomed(!zoomed);
   };
 
   return (
@@ -267,11 +272,31 @@ const DetailScreen = ({ route, navigation }) => {
         <View style={{ marginTop: 7, marginLeft: 10 }}>
           {currentCity.mediaUrl && typeof currentCity.mediaUrl !== 'undefined' ? (
             String(currentCity.mediaUrl).includes('/images') ? (
-              // Si es una URL de imagen, mostrar la imagen
-              <Image source={{ uri: currentCity.mediaUrl }} style={{ width: 160, height: 120 }} />
+              // Si es una URL de imagen, mostrar la imagen con funcionalidad de zoom
+              <>
+                {/* Cuando se presiona la imagen, se llama a la función toggleZoom con la URL de la imagen */}
+                <TouchableOpacity onPress={() => toggleZoom(currentCity.mediaUrl)}>
+                  {/* La imagen que muestra la vista previa de la imagen */}
+                  <Image source={{ uri: currentCity.mediaUrl }} style={{ width: 160, height: 120 }} />
+                </TouchableOpacity>
+
+                {/* Modal que muestra la imagen en un tamaño más grande cuando se activa el zoom */}
+                <Modal visible={zoomed} transparent={true} onRequestClose={() => setZoomed(false)}>
+                  <View style={styles.modalContainer}>
+                    {/* Se puede cerrar el modal presionando la imagen */}
+                    <TouchableOpacity onPress={() => setZoomed(false)}>
+                      {/* La imagen ampliada */}
+                      <Image source={{ uri: imageUrl }} resizeMode="contain" style={styles.zoomedImage} />
+                    </TouchableOpacity>
+                  </View>
+                </Modal>
+              </>
             ) : String(currentCity.mediaUrl).includes('/videos') ? (
               // Si es una URL de video, mostrar el texto "Ver video"
-              <Text style={{ fontSize: 16, fontWeight: 'bold' }}>Ver video</Text>
+
+              <TouchableOpacity onPress={navigateToPlayer}>
+                <AntDesign name="playcircleo" size={30} color="black" style={{ marginTop: 6 }} />
+              </TouchableOpacity>
             ) : (
               // Si no se encuentra ninguna subcadena relevante, mostrar un mensaje predeterminado
               <Text>No se puede determinar el tipo de medio</Text>
@@ -340,11 +365,21 @@ const DetailScreen = ({ route, navigation }) => {
           <TouchableOpacity onPress={selectMedia} style={[styles.buttonModal, { marginBottom: 10 }]}>
             <Text style={styles.buttonText}>Seleccionar archivo</Text>
           </TouchableOpacity>
-          {mediaUri && mediaUri.startsWith('data:image/') && (
-            <Image source={{ uri: mediaUri }} style={{ width: 180, height: 150 }} />                        // Imagen previsualizada que se quiere subir
-          )}
-          {mediaUri && mediaUri.startsWith('data:video/') && (
-            <Image source={require('../../assets/video2.jpg')} style={{ width: 180, height: 150 }} />       // Imagen predetermianda para los videos
+          {/* Condición para mostrar imagen o video */}
+          {mediaUri && (
+            <View style={{ alignItems: 'center' }}>
+              {mediaUri.startsWith('data:image/') ? (
+                <>
+                  <Image source={{ uri: mediaUri }} style={{ width: 180, height: 150 }} />
+                  <Text style={{ marginTop: 5 }}>Imagen cargada</Text>
+                </>
+              ) : mediaUri.startsWith('data:video/') ? (
+                <>
+                  <Image source={require('../../assets/video2.jpg')} style={{ width: 180, height: 150 }} />
+                  <Text style={{ marginTop: 5 }}>Video cargado</Text>
+                </>
+              ) : null}
+            </View>
           )}
 
           {/* Botón para guardar detalles */}
@@ -434,7 +469,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  
+  zoomedImage: {
+    width: Dimensions.get('window').width,
+    height: Dimensions.get('window').height,
+  },
 });
 
 export default DetailScreen;

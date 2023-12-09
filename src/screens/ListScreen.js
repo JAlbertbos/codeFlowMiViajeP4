@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Button, FlatList, Text, TouchableOpacity, Modal, Image, TextInput, StyleSheet, Keyboard, Platform, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { useFocusEffect } from '@react-navigation/native';
 // Importa funciones específicas de Firestore
 import { getFirestore, collection, addDoc, query, getDocs, deleteDoc } from 'firebase/firestore/lite';
 import { initializeApp } from 'firebase/app';                                                                 // Importa la función de inicialización de Firebase
@@ -131,42 +132,49 @@ const ListScreen = ({ navigation }) => {
     };
   }, []);
 
+  useFocusEffect(
+    React.useCallback(() => {
+      // Actualizar los datos cuando la pantalla obtenga enfoque
+      fetchCities(setCities); // Función para obtener los datos actualizados desde la fuente de datos
+    }, [])
+  );
+
   // Funccion para selecionar un video o una imagen ***********************************************************************************************************************************
   const selectMedia = async () => {
-  // Selecciona un archivo multimedia de la biblioteca
-  let result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ImagePicker.MediaTypeOptions.All,     // Tipos de medios disponibles (todos en este caso)
-    allowsEditing: true,                              // Permite editar la imagen seleccionada
-    aspect: [4, 3],                                   // Proporción de aspecto 
-    quality: 1,                                       // Calidad de la imagen 
-    });
+    // Selecciona un archivo multimedia de la biblioteca
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,     // Tipos de medios disponibles (todos en este caso)
+      allowsEditing: true,                              // Permite editar la imagen seleccionada
+      aspect: [4, 3],                                   // Proporción de aspecto 
+      quality: 1,                                       // Calidad de la imagen 
+      });
 
-    if (!result.canceled && result.assets[0].uri) {
-      // Establece la URI seleccionada en el estado 
-      setImage(result.assets[0].uri);
-      if (result.assets[0].uri.startsWith('data:image/')) {
-        console.log('Es una imagen');
-        const fileName = `images/${new Date().toISOString()}_${result.assets[0].uri.split('/').pop()}`;   // Genera un nombre de archivo único para la imagen con la ultima parte del uri
-        
-        // Actualizar el estado con la uri y el nombre del archivo
-        setMediaUri(result.assets[0].uri);
-        setMediaFileName(fileName);
-        console.log(fileName);
+      if (!result.canceled && result.assets[0].uri) {
+        // Establece la URI seleccionada en el estado 
+        setImage(result.assets[0].uri);
+        if (result.assets[0].uri.startsWith('data:image/')) {
+          console.log('Es una imagen');
+          const fileName = `images/${new Date().toISOString()}_${result.assets[0].uri.split('/').pop()}`;   // Genera un nombre de archivo único para la imagen con la ultima parte del uri
+          
+          // Actualizar el estado con la uri y el nombre del archivo
+          setMediaUri(result.assets[0].uri);
+          setMediaFileName(fileName);
+          console.log(fileName);
 
-      } else if (result.assets[0].uri.startsWith('data:video/')) {
-        console.log('Es un video');
-        const fileName = `videos/${new Date().toISOString()}_${result.assets[0].uri.split('/').pop()}`;   // Genera un nombre de archivo único para la imagen con la ultima parte del uri
-        
-        // Actualizar el estado con la uri y el nombre del archivo
-        setMediaUri(result.assets[0].uri);
-        setMediaFileName(fileName);
-        console.log(fileName);
+        } else if (result.assets[0].uri.startsWith('data:video/')) {
+          console.log('Es un video');
+          const fileName = `videos/${new Date().toISOString()}_${result.assets[0].uri.split('/').pop()}`;   // Genera un nombre de archivo único para la imagen con la ultima parte del uri
+          
+          // Actualizar el estado con la uri y el nombre del archivo
+          setMediaUri(result.assets[0].uri);
+          setMediaFileName(fileName);
+          console.log(fileName);
 
-      } else {
-        // Otro tipo de archivo 
-        console.log('Otro tipo de archivo');
-      }
-    }  
+        } else {
+          // Otro tipo de archivo 
+          console.log('Otro tipo de archivo');
+        }
+      }  
   };
 
   // Función para subir un archivo multimedia (imagen o video) al Storage de Firebase *************************************************************************************************
@@ -399,11 +407,21 @@ const ListScreen = ({ navigation }) => {
           <TouchableOpacity onPress={selectMedia} style={[styles.buttonModal, { marginBottom: 10 }]}>
             <Text style={styles.buttonText}>Seleccionar archivo</Text>
           </TouchableOpacity>
-          {mediaUri && mediaUri.startsWith('data:image/') && (
-            <Image source={{ uri: mediaUri }} style={{ width: 180, height: 150 }} />                        // Imagen previsualizada que se quiere subir
-          )}
-          {mediaUri && mediaUri.startsWith('data:video/') && (
-            <Image source={require('../../assets/video2.jpg')} style={{ width: 180, height: 150 }} />       // Imagen predetermianda para los videos
+          {/* Condición para mostrar imagen o video */}
+          {mediaUri && (
+            <View style={{ alignItems: 'center' }}>
+              {mediaUri.startsWith('data:image/') ? (
+                <>
+                  <Image source={{ uri: mediaUri }} style={{ width: 180, height: 150 }} />
+                  <Text style={{ marginTop: 5 }}>Imagen cargada</Text>
+                </>
+              ) : mediaUri.startsWith('data:video/') ? (
+                <>
+                  <Image source={require('../../assets/video2.jpg')} style={{ width: 180, height: 150 }} />
+                  <Text style={{ marginTop: 5 }}>Video cargado</Text>
+                </>
+              ) : null}
+            </View>
           )}
 
           {/* Botón para guardar los detalles de la nueva ciudad */}

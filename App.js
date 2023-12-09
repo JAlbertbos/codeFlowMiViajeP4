@@ -35,7 +35,7 @@ const App = () => {
       {/* Define las diferentes pantallas y sus opciones */}
       <Stack.Screen name="VIAJE A JAPÓN" component={ListScreen} options={{ title: 'VIAJE A JAPÓN' }} />
       <Stack.Screen name="DetailScreen" component={DetailScreen} options={{ title: 'Detalles' }} />
-        <Stack.Screen name="Video" component={PlayerScreen} options={{ title: 'Video' }} />
+        <Stack.Screen name="PlayerScreen" component={PlayerScreen} options={{ title: 'Video' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
