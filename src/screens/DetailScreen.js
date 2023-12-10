@@ -251,7 +251,7 @@ const DetailScreen = ({ route, navigation }) => {
 
         {/* Sección: Actividades */}
         <View style={styles.infoContainer}>
-          <Text style={styles.label}>{('Actividades').toUpperCase()}:</Text>
+          <Text style={styles.label}>{('Actividades').toUpperCase()}</Text>
           <View style={{marginTop: 7, marginLeft: 10}}>
             {/* Mapeo de actividades */}
             {currentCity.activities.split(',').map((activity, index) => (

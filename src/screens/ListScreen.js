@@ -452,8 +452,6 @@ const ListScreen = ({ navigation }) => {
         </Modal>
       </View>
     </ScrollView>
- 
-
   );
 };
 
