@@ -32,7 +32,10 @@
     "npx expo start": {
       "name": "npx expo start",
       "command": "npx expo start",
-      "runAtStart": true
+      "runAtStart": true,
+      "preview": {
+        "port": 8082
+      }
     }
   }
 }
