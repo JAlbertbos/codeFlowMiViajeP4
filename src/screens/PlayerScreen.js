@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { ScrollView, View, Platform, Text, Modal, TextInput, StyleSheet, TouchableOpacity, Dimensions} from 'react-native';
-import { getFirestore, c } from 'firebase/firestore/lite';
+import { View, Platform, StyleSheet, TouchableOpacity, Dimensions} from 'react-native';
+import { getFirestore} from 'firebase/firestore/lite';
 import { initializeApp } from 'firebase/app';
 import { Video, ResizeMode  } from 'expo-av';
 import { FontAwesome } from '@expo/vector-icons';
@@ -23,28 +23,31 @@ const app = initializeApp(firebaseConfig);                // Inicializa la aplic
 const db = getFirestore(app);                             // Obtiene una referencia a la base de datos Firestore
 
 const PlayerScreen = ({ route }) => {
-  const { mediaUrl } = route.params;
-  const [videoURL, setVideoURL] = useState(null);
-  const [volume, setVolume] = useState(1);
-  const [status, setStatus] = useState({});
+  const { mediaUrl } = route.params;                      // Extrae la URL del video de los parámetros de la ruta
+  const [videoURL, setVideoURL] = useState(null);         // Estado para la URL del video
+  const [volume, setVolume] = useState(1);                // Estado para el volumen del video
+  const [status, setStatus] = useState({});               // Estado para el estado actual del video
 
+  // Efecto para ACTUALIZAR la URL desde detalle
   useEffect(() => {
     if (mediaUrl) {
-      setVideoURL(mediaUrl);  // Si mediaUrl no es nulo, configúralo como videoURL.
+      setVideoURL(mediaUrl);
     }
-  }, [mediaUrl]);
-
+  }, [mediaUrl]); 
+  
+  // Función para manejar el cambio de volumen
   const handleVolumeChange = (value) => {
     setVolume(value);
   };
 
+  // Función que se activa cuando el video llega al final
   const handleVideoEnd = () => {
+    // Establece un estado (por ejemplo, videoEnd) para indicar el final del video
     setVideoEnd(true);
   };
 
-
   if (Platform.OS === 'web') {
-    return (
+    return (      // Renderización Web
       <View style={[ styles.containerWeb , {} ]}>
         <video src={videoURL} {
           ...{
@@ -56,7 +59,7 @@ const PlayerScreen = ({ route }) => {
       } />
     </View>
     )
-  } else {
+  } else {      // Renderización movil
     return (
       <View style={styles.container}>
         {videoURL && (
@@ -67,7 +70,8 @@ const PlayerScreen = ({ route }) => {
                 source={{uri: videoURL,}}
                 useNativeControls
                 resizeMode={ResizeMode.COVER}
-                onPlaybackStatusUpdate={status => setStatus(() => status)}
+                shouldPlay={false}
+                isLooping={false}
                 volume={volume}
               />
               <View style={[styles.volumeControl, {marginTop: 10}]}>
@@ -124,10 +128,10 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   videoWeb: {
-    maxWidth: '100%', // Limita el ancho del video al tamaño máximo del contenedor
-    maxHeight: '100%', // Limita la altura del video al tamaño máximo del contenedor
-    width: 'auto', // Ancho automático para mantener la relación de aspecto original
-    height: 'auto', // Altura automática para mantener la relación de aspecto original
+    maxWidth: '100%', 
+    maxHeight: '100%',
+    width: 'auto', 
+    height: 'auto', 
   },
 });
 

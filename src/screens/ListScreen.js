@@ -1,7 +1,7 @@
 
 // Importa los módulos necesarios desde React y React Native
 import React, { useState, useEffect } from 'react';
-import { View, Button, FlatList, Text, TouchableOpacity, Modal, Image, TextInput, StyleSheet, Keyboard, Platform, Alert } from 'react-native';
+import { View, FlatList, Text, TouchableOpacity, Modal, Image, TextInput, StyleSheet, Keyboard, ScrollView, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useFocusEffect } from '@react-navigation/native';
 // Importa funciones específicas de Firestore
@@ -40,7 +40,7 @@ const ListScreen = ({ navigation }) => {
   // Estados para manejar los datos y la interfaz de usuario
   const [cities, setCities] = useState([]);                             // Lista de ciudades
   const [modalVisible, setModalVisible] = useState(false);              // Visibilidad del modal
-  const [keyboardVisible, setKeyboardVisible] = useState(false);        
+  const [keyboardVisible, setKeyboardVisible] = useState(false);        // Verificar si el teclado del movil esta activo
   const [name, setName] = useState('');                                 // Nombre de la ciudad
   const [day, setDay] = useState('');                                   // Día
   const [accommodation, setAccommodation] = useState('');               // Alojamiento
@@ -285,159 +285,175 @@ const ListScreen = ({ navigation }) => {
 
   return (
     // Vista principal del componente
-    <View style={{ flex: 1, flexDirection: 'row', marginTop: 30 }}>
-      
-      {/* Columna Izquierda */}
-      <View style={{ flex: 1, alignItems: 'center' }}>
-        <TouchableOpacity onPress={openModal} style={[ styles.button, { marginBottom: 35, alignItems: 'center' } ]}>
-          <Text style={styles.buttonText}>Agregar ciudad</Text>
-        </TouchableOpacity>
+    <ScrollView style={{ flex: 1, marginTop: 30 }}>
+      <View style={{ flexDirection: 'row' }}>
 
-        <FlatList
-          data={sortedCities}
-          keyExtractor={(item, index) => index.toString()}
-          renderItem={({ item }) => (
-            <View style={{ marginTop: 10, height: 45 }}>
-              <TouchableOpacity onPress={() => navigateToDetail(item)}>
-                <Text style={styles.cityText}>Día {item.day} - {item.name}</Text>
+        {/* Columna Izquierda */}
+        <View style={{ flex: 1, alignItems: 'center' }}>
+          <TouchableOpacity onPress={openModal} style={[ styles.button, { marginBottom: 35, alignItems: 'center' } ]}>
+            <Text style={styles.buttonText}>Agregar ciudad</Text>
+          </TouchableOpacity>
+
+          <FlatList
+            data={sortedCities}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={({ item }) => (
+              <View style={{  height: 55 }}>
+                <TouchableOpacity onPress={() => navigateToDetail(item)}>
+                  <Text 
+                    style={[styles.cityText,{}]}
+                    >
+                      Día {item.day}  {item.name}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          />
+        </View>
+
+        {/* Columna Derecha */}
+        <View style={{ flex: 1, alignItems: 'center'}}>
+          <TouchableOpacity onPress={openFilterModal} style={[ styles.button, { marginBottom: 35, alignItems: 'center' } ]}>
+            <Text style={styles.buttonText}>Filtrar ciudad</Text>
+          </TouchableOpacity>
+
+          {/* Botón de editar y eliminar */}
+            {sortedCities.map((item, index) => (
+              <View key={index} style={{ flexDirection: 'row', height: 55 }}>
+                <TouchableOpacity onPress={() => navigateToDetail(item)}>
+                  <AntDesign 
+                    name="edit" 
+                    size={23} 
+                    color="black" 
+                    style={{ marginTop: 4,  marginRight: 35, marginVertical: 5}} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => deleteCity(item.name)} >
+                  <AntDesign 
+                    name="delete"
+                    size={23} 
+                    color="black"  
+                    style={{ marginTop: 3, marginLeft: 35, marginVertical: 5 }}/>
+                </TouchableOpacity>
+              </View>
+            ))}
+          
+          {/* Contenido del modal de filtro */}
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={filterModalVisible}
+            onRequestClose={closeFilterModal}
+            >
+            <View style={styles.modalContainer}>
+            {/* Botón para cerrar el modal */}
+              <TouchableOpacity onPress={closeFilterModal} style={styles.closeButton}>
+                <AntDesign name="close" size={20} color="white" />
+              </TouchableOpacity>
+
+              {/* Campo para aplicar un filtro por ciudad*/}
+              <TextInput
+                style={styles.input}
+                onChangeText={text => setCityFilter(text)}
+                value={cityFilter}
+                placeholder="Introduce una ciudad"
+              />
+
+              {/* Botón para aplicar el filtro */}
+              <TouchableOpacity onPress={applyFilter} style={[styles.buttonModal, { marginBottom: 10 }]}>
+                <Text style={styles.buttonText}>Aplicar filtro</Text>
+              </TouchableOpacity>
+              {/* Botón para aplicar el filtro */}
+              <TouchableOpacity onPress={resetFilter} style={[styles.buttonModal, { position: 'absolute', bottom: 20 },]}>
+                <Text style={styles.buttonText}>Restablecer</Text>
               </TouchableOpacity>
             </View>
-          )}
-        />
-      </View>
+          </Modal>
+        </View>
 
-      {/* Columna Derecha */}
-      <View style={{ flex: 1, alignItems: 'center'}}>
-        <TouchableOpacity onPress={openFilterModal} style={[ styles.button, { marginBottom: 35, alignItems: 'center' } ]}>
-          <Text style={styles.buttonText}>Filtrar ciudad</Text>
-        </TouchableOpacity>
-
-        {/* Botón de editar y eliminar */}
-          {sortedCities.map((item, index) => (
-            <View key={index} style={{ flexDirection: 'row', marginTop: 10, height: 45 }}>
-              <TouchableOpacity onPress={() => navigateToDetail(item)}>
-                <AntDesign name="edit" size={23} color="black" style={{ marginTop: 4,  marginRight: 40}} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => deleteCity(item.name)} >
-                <AntDesign name="delete" size={23} color="black"  style={{ marginTop: 3, marginLeft: 40 }}/>
-              </TouchableOpacity>
-            </View>
-          ))}
-        
-        {/* Contenido del modal de filtro */}
+        {/* Modal para agregar una nueva ciudad */}
         <Modal
           animationType="slide"
           transparent={true}
-          visible={filterModalVisible}
-          onRequestClose={closeFilterModal}
+          visible={modalVisible}
+          onRequestClose={closeModal}
           >
           <View style={styles.modalContainer}>
-          {/* Botón para cerrar el modal */}
-            <TouchableOpacity onPress={closeFilterModal} style={styles.closeButton}>
+            {/* Botón para cerrar el modal */}
+            <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
               <AntDesign name="close" size={20} color="white" />
             </TouchableOpacity>
-
-            {/* Campo para aplicar un filtro por ciudad*/}
+            
+            {/* Campos para agregar detalles de la nueva ciudad */}
             <TextInput
-              style={styles.input}
-              onChangeText={text => setCityFilter(text)}
-              value={cityFilter}
-              placeholder="Introduce una ciudad"
+                style={styles.input}
+                onChangeText={text => setName(text)}
+                value={name}
+                placeholder="Ciudad"
+            />
+            <TextInput
+                style={styles.input}
+                onChangeText={text => setDay(text)}
+                value={day}
+                placeholder="Día"
+            />
+            <TextInput
+                style={styles.input}
+                onChangeText={text => setAccommodation(text)}
+                value={accommodation}
+                placeholder="Alojamiento"
+            />
+            <TextInput
+                style={styles.input}
+                onChangeText={text => setActivities(text)}
+                value={activities}
+                placeholder="Actividades"
+            />
+            <TextInput
+                style={styles.descriptionInput}
+                onChangeText={text => setDescription(text)}
+                value={description}
+                placeholder="Descripción"
+                multiline={true} 
             />
 
-            {/* Botón para aplicar el filtro */}
-            <TouchableOpacity onPress={applyFilter} style={[styles.buttonModal, { marginBottom: 10 }]}>
-              <Text style={styles.buttonText}>Aplicar filtro</Text>
+            {/* Botón para seleccionar un archivo */}
+            <TouchableOpacity onPress={selectMedia} style={[styles.buttonModal, { marginBottom: 10 }]}>
+              <Text style={styles.buttonText}>Seleccionar archivo</Text>
             </TouchableOpacity>
-            {/* Botón para aplicar el filtro */}
-            <TouchableOpacity onPress={resetFilter} style={[styles.buttonModal, { position: 'absolute', bottom: 20 },]}>
-              <Text style={styles.buttonText}>Restablecer</Text>
+            {/* Condición para mostrar imagen o video */}
+            {mediaUri && (
+              <View style={{ alignItems: 'center' }}>
+                {mediaUri.startsWith('data:image/') ? (
+                  <>
+                    <Image source={{ uri: mediaUri }} style={{ width: 180, height: 150 }} />
+                    <Text style={{ marginTop: 5 }}>Imagen cargada</Text>
+                  </>
+                ) : mediaUri.startsWith('data:video/') ? (
+                  <>
+                    <Image source={require('../../assets/video2.jpg')} style={{ width: 180, height: 150 }} />
+                    <Text style={{ marginTop: 5 }}>Video cargado</Text>
+                  </>
+                ) : null}
+              </View>
+            )}
+
+            {/* Botón para guardar los detalles de la nueva ciudad */}
+            <TouchableOpacity onPress={addCityDetails} style={[styles.buttonModal, { marginTop: 10 }]}>
+              <Text style={styles.buttonText}>Guardar registro </Text>
             </TouchableOpacity>
+
+            {/* Botón para restablecer los campos del modal */}
+            {!keyboardVisible && (
+              <TouchableOpacity onPress={resetFields} style={[ styles.buttonModal, { position: 'absolute', bottom: 20 },]}>
+                <Text style={styles.buttonText}>Restablecer</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </Modal>
       </View>
+    </ScrollView>
+ 
 
-      {/* Modal para agregar una nueva ciudad */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={closeModal}
-        >
-        <View style={styles.modalContainer}>
-          {/* Botón para cerrar el modal */}
-          <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
-            <AntDesign name="close" size={20} color="white" />
-          </TouchableOpacity>
-          
-          {/* Campos para agregar detalles de la nueva ciudad */}
-          <TextInput
-              style={styles.input}
-              onChangeText={text => setName(text)}
-              value={name}
-              placeholder="Ciudad"
-          />
-          <TextInput
-              style={styles.input}
-              onChangeText={text => setDay(text)}
-              value={day}
-              placeholder="Día"
-          />
-          <TextInput
-              style={styles.input}
-              onChangeText={text => setAccommodation(text)}
-              value={accommodation}
-              placeholder="Alojamiento"
-          />
-          <TextInput
-              style={styles.input}
-              onChangeText={text => setActivities(text)}
-              value={activities}
-              placeholder="Actividades"
-          />
-          <TextInput
-              style={styles.descriptionInput}
-              onChangeText={text => setDescription(text)}
-              value={description}
-              placeholder="Descripción"
-              multiline={true} 
-          />
-
-          {/* Botón para seleccionar un archivo */}
-          <TouchableOpacity onPress={selectMedia} style={[styles.buttonModal, { marginBottom: 10 }]}>
-            <Text style={styles.buttonText}>Seleccionar archivo</Text>
-          </TouchableOpacity>
-          {/* Condición para mostrar imagen o video */}
-          {mediaUri && (
-            <View style={{ alignItems: 'center' }}>
-              {mediaUri.startsWith('data:image/') ? (
-                <>
-                  <Image source={{ uri: mediaUri }} style={{ width: 180, height: 150 }} />
-                  <Text style={{ marginTop: 5 }}>Imagen cargada</Text>
-                </>
-              ) : mediaUri.startsWith('data:video/') ? (
-                <>
-                  <Image source={require('../../assets/video2.jpg')} style={{ width: 180, height: 150 }} />
-                  <Text style={{ marginTop: 5 }}>Video cargado</Text>
-                </>
-              ) : null}
-            </View>
-          )}
-
-          {/* Botón para guardar los detalles de la nueva ciudad */}
-          <TouchableOpacity onPress={addCityDetails} style={[styles.buttonModal, { marginTop: 10 }]}>
-            <Text style={styles.buttonText}>Guardar registro </Text>
-          </TouchableOpacity>
-
-          {/* Botón para restablecer los campos del modal */}
-          {!keyboardVisible && (
-            <TouchableOpacity onPress={resetFields} style={[ styles.buttonModal, { position: 'absolute', bottom: 20 },]}>
-              <Text style={styles.buttonText}>Restablecer</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      </Modal>
-    </View>
   );
 };
 
@@ -446,6 +462,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: 'bold',
     marginVertical: 5, 
+    maxWidth: 160,
   },
   modalContainer: {
     flex: 1,

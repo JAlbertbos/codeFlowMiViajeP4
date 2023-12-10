@@ -3,6 +3,7 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { AntDesign } from '@expo/vector-icons'; 
 // Importa los componentes de las diferentes pantallas
 import DetailScreen from './src/screens/DetailScreen';
 import ListScreen from './src/screens/ListScreen';
@@ -13,32 +14,55 @@ const Stack = createStackNavigator();
 
 // Componente principal de la aplicación
 const App = () => {
+
   // Retorna la estructura de navegación de la aplicación
   return (
-    // Contenedor de navegación principal
     <NavigationContainer>
-      {/* Define el Stack Navigator con opciones de estilo */}
       <Stack.Navigator
-        initialRouteName="VIAJE A JAPÓN" // Define la ruta inicial
-        screenOptions={{
-          headerStyle: {
-            backgroundColor: '#f4511e', // Color de fondo del encabezado
-          },
-          headerTintColor: '#fff', // Color del texto/iconos del encabezado
-          headerTitleStyle: {
-            fontWeight: 'bold', // Estilo del texto del encabezado
-          },
-          headerTitleAlign: 'center', // Alineación central del título del encabezado
+        initialRouteName="ListScreen"
+        screenOptions={({ navigation }) => {
+          // Componente para el botón de inicio
+          const HomeButton = () => (
+            <AntDesign
+              name="home"
+              size={24}
+              color="white"
+              style={{ marginRight: 15 }}
+              onPress={() => navigation.navigate('ListScreen')}         // Navega a la pantalla principal al presionar el botón de inicio
+            />
+          );
+
+          return {
+            headerStyle: {
+              backgroundColor: '#f4511e',                               // Estilo del encabezado: color de fondo
+            },
+            headerTintColor: '#fff',                                    // Estilo del encabezado: color del texto/iconos
+            headerTitleStyle: {
+              fontWeight: 'bold',                                       // Estilo del encabezado: peso del texto
+            },
+            headerTitleAlign: 'center',                                 // Estilo del encabezado: alineación del título
+            headerRight: (props) => <HomeButton {...props} />,          // Componente de botón de inicio en la esquina superior derecha
+          };
         }}
       >
-
-      {/* Define las diferentes pantallas y sus opciones */}
-      <Stack.Screen name="VIAJE A JAPÓN" component={ListScreen} options={{ title: 'VIAJE A JAPÓN' }} />
-      <Stack.Screen name="DetailScreen" component={DetailScreen} options={{ title: 'Detalles' }} />
-        <Stack.Screen name="PlayerScreen" component={PlayerScreen} options={{ title: 'Video' }} />
+        <Stack.Screen
+          name="ListScreen"
+          component={ListScreen}
+          options={{ title: 'VIAJE A JAPÓN' }}
+        />
+        <Stack.Screen
+          name="DetailScreen"
+          component={DetailScreen}
+          options={{ title: 'Detalles' }}
+        />
+        <Stack.Screen
+          name="PlayerScreen"
+          component={PlayerScreen}
+          options={{ title: 'Video' }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
 };
-// Exporta el componente principal de la aplicación
+
 export default App;
