@@ -132,9 +132,9 @@ const ListScreen = ({ navigation }) => {
     };
   }, []);
 
+  // Efecto para obtener los datos de la colección 'cities' de Firestore cuando se vuelve a la pantalla
   useFocusEffect(
     React.useCallback(() => {
-      // Actualizar los datos cuando la pantalla obtenga enfoque
       fetchCities(setCities); // Función para obtener los datos actualizados desde la fuente de datos
     }, [])
   );

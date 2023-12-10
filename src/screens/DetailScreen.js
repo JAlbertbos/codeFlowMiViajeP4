@@ -43,10 +43,10 @@ const DetailScreen = ({ route, navigation }) => {
   const [image, setImage] = useState(null);                              // Previsualización de la imagen 
   const [mediaUri, setMediaUri] = useState(null);                        // Identificador del archivo multimedia
   const [mediaFileName, setMediaFileName] = useState(null);              // Nombre para el archivo multimedia
-  const [currentCity, setCurrentCity] = useState(item);
-  const [keyboardVisible, setKeyboardVisible] = useState(false);
-  const [zoomed, setZoomed] = useState(false);
-  const [imageUrl, setImageUrl] = useState(null);
+  const [currentCity, setCurrentCity] = useState(item);                  // Define el estado inicial con el valor de 'item'
+  const [keyboardVisible, setKeyboardVisible] = useState(false);         // Estado para controlar la visibilidad del teclado
+  const [zoomed, setZoomed] = useState(false);                           // Estado para controlar el zoom
+  const [imageUrl, setImageUrl] = useState(null);                        // URL de la imagen
 
   // Efecto para detectar si el teclado está visible o no
   useEffect(() => {
@@ -208,10 +208,11 @@ const DetailScreen = ({ route, navigation }) => {
   };
 
   // Función para navegar a la pantalla de detalles de una ciudad
-  const navigateToPlayer = (currentCity) => {
-  navigation.navigate('PlayerScreen', { currentCity });
+  const navigateToPlayer = () => {
+  navigation.navigate('PlayerScreen', { mediaUrl: currentCity.mediaUrl });
   };
 
+  // Efecto para hacer zoom en la imagen
   const toggleZoom = (url) => {
     setImageUrl(url);
     setZoomed(!zoomed);
