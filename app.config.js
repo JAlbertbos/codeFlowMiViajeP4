@@ -3,9 +3,9 @@ export default {
   slug: "codeflowmiviajep3",
   version: "1.0.0",
   orientation: "portrait",
-  icon: "./path/to/your/icon.png",
+  icon: "./assets/icon.png",
   splash: {
-    image: "./path/to/your/splash.png",
+    image: "./assets/splash.png",
     resizeMode: "contain",
     backgroundColor: "#ffffff",
   },
@@ -18,7 +18,7 @@ export default {
   },
   android: {
     adaptiveIcon: {
-      foregroundImage: "./path/to/your/foreground.png",
+      foregroundImage: "./assets/foreground.png",
       backgroundColor: "#FFFFFF",
     },
   },
