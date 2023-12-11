@@ -145,38 +145,48 @@ const ListScreen = ({ navigation }) => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,     // Tipos de medios disponibles (todos en este caso)
       allowsEditing: true,                              // Permite editar la imagen seleccionada
-      aspect: [4, 3],                                   // Proporción de aspecto 
-      quality: 1,                                       // Calidad de la imagen 
-      });
+      aspect: [4, 3],                                   // Proporción de aspecto (4:3 en este caso)
+      quality: 1,                                       // Calidad de la imagen (de 0 a 1)
+    });
+  
+    if (!result.canceled && result.assets[0].uri) {
+      // Establece la URI seleccionada en el estado (por ejemplo, para mostrarla en la interfaz)
+      setImage(result.assets[0].uri);
+      if (result.assets[0].uri.startsWith('data:image/')) {
+        console.log('Es una imagen');
+        const fileName = `images/${new Date().toISOString()}_${result.assets[0].uri.split('/').pop()}`;   // Genera un nombre de archivo único para la imagen con la ultima parte del uri
+        
+        // Actualizar el estado con la uri y el nombre del archivo
+        setMediaUri(result.assets[0].uri);
+        setMediaFileName(fileName);
+        console.log(fileName);
 
-      if (!result.canceled && result.assets[0].uri) {
-        // Establece la URI seleccionada en el estado 
-        setImage(result.assets[0].uri);
-        if (result.assets[0].uri.startsWith('data:image/')) {
-          console.log('Es una imagen');
-          const fileName = `images/${new Date().toISOString()}_${result.assets[0].uri.split('/').pop()}`;   // Genera un nombre de archivo único para la imagen con la ultima parte del uri
-          
-          // Actualizar el estado con la uri y el nombre del archivo
-          setMediaUri(result.assets[0].uri);
-          setMediaFileName(fileName);
-          console.log(fileName);
+      } else if (result.assets[0].uri.startsWith('data:video/')) {
+        console.log('Es un video');
+        const fileName = `videos/${new Date().toISOString()}_${result.assets[0].uri.split('/').pop()}`;   // Genera un nombre de archivo único para la imagen con la ultima parte del uri
+        
+        // Actualizar el estado con la uri y el nombre del archivo
+        setMediaUri(result.assets[0].uri);
+        setMediaFileName(fileName);
+        console.log(fileName);
 
-        } else if (result.assets[0].uri.startsWith('data:video/')) {
-          console.log('Es un video');
-          const fileName = `videos/${new Date().toISOString()}_${result.assets[0].uri.split('/').pop()}`;   // Genera un nombre de archivo único para la imagen con la ultima parte del uri
-          
-          // Actualizar el estado con la uri y el nombre del archivo
-          setMediaUri(result.assets[0].uri);
-          setMediaFileName(fileName);
-          console.log(fileName);
+      } else if (result.assets[0].uri.endsWith('.jpeg') || result.assets[0].uri.endsWith('.jpg') || result.assets[0].uri.endsWith('.png') || result.assets[0].uri.endsWith('.bmp')) {
+        console.log('Es una imagen');
+        const fileName = `images/${new Date().toISOString()}_${result.assets[0].uri.split('/').pop()}`;   // Genera un nombre de archivo único para la imagen con la ultima parte del uri
+        setMediaUri(result.assets[0].uri);
+        setMediaFileName(fileName);
+    
+      }else if (result.assets[0].uri.endsWith('.mp4') || result.assets[0].uri.endsWith('.avi') || result.assets[0].uri.endsWith('.wmv') || result.assets[0].uri.endsWith('.mkv')) {
+        console.log('Es una video');
+        const fileName = `videos/${new Date().toISOString()}_${result.assets[0].uri.split('/').pop()}`;   // Genera un nombre de archivo único para la imagen con la ultima parte del uri
+        setMediaUri(result.assets[0].uri);
+        setMediaFileName(fileName);
 
-        } else {
-          // Otro tipo de archivo 
-          console.log('Otro tipo de archivo');
-        }
-      }  
+      } else {
+        console.log('Otro tipo de archivo');
+      }
+    }  
   };
-
   // Función para subir un archivo multimedia (imagen o video) al Storage de Firebase *************************************************************************************************
   const uploadMedia = async (uri, fileName) => {
     const response = await fetch(uri);                    // Obtiene el archivo desde la URI
