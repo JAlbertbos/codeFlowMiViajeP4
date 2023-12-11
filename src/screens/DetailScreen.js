@@ -108,6 +108,7 @@ const DetailScreen = ({ route, navigation }) => {
       } else {
         // Otro tipo de archivo 
         console.log('Otro tipo de archivo');
+        
       }
     }  
   };
