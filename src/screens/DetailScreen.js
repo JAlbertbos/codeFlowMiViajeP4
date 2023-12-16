@@ -9,13 +9,13 @@ import { AntDesign } from '@expo/vector-icons';
 
 // Configuración de las credenciales de Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyCBHtoO7naEQHJYFgioJDXYsLNDKJR-X74",
-  authDomain: "codeflowmiviajep3.firebaseapp.com",
-  projectId: "codeflowmiviajep3",
-  storageBucket: "codeflowmiviajep3.appspot.com",
-  messagingSenderId: "222002248733",
-  appId: "1:222002248733:web:5d46b01bd1bf7fe9e25af4",
-  measurementId: "G-ZBWNWPKLK4"
+  apiKey: "AIzaSyAIxvIBjZFRaAKTg3IS8YQ4fXHfnQA_AC4",
+  authDomain: "codeflowmiviajep4.firebaseapp.com",
+  projectId: "codeflowmiviajep4",
+  storageBucket: "codeflowmiviajep4.appspot.com",
+  messagingSenderId: "239418664935",
+  appId: "1:239418664935:web:179126ec4a0f3809797f42",
+  measurementId: "G-JRF1F928L1"
 };
 
 const app = initializeApp(firebaseConfig);                // Inicializa la aplicación Firebase con la configuración proporcionada
@@ -251,7 +251,7 @@ const DetailScreen = ({ route, navigation }) => {
 
         {/* Sección: Actividades */}
         <View style={styles.infoContainer}>
-          <Text style={styles.label}>{('Actividades').toUpperCase()}:</Text>
+          <Text style={styles.label}>{('Actividades').toUpperCase()}</Text>
           <View style={{marginTop: 7, marginLeft: 10}}>
             {/* Mapeo de actividades */}
             {currentCity.activities.split(',').map((activity, index) => (
