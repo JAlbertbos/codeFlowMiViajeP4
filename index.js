@@ -41,3 +41,37 @@ exports.makeuppercase = onDocumentCreated("/messages/{documentId}", (event) => {
   return event.data.ref.set({uppercase}, {merge: true});
 });
 
+
+// All Realtime Database instances in default function region us-central1 at path "/user/{uid}"
+// There must be at least one Realtime Database present in us-central1.
+const onWrittenFunctionDefault = onValueWritten("/user/{uid}", (event) => {
+  // …
+});
+
+// Instance named "my-app-db-2", at path "/user/{uid}".
+// The "my-app-db-2" instance must exist in this region.
+const OnWrittenFunctionInstance = onValueWritten(
+  {
+    ref: "/user/{uid}",
+    instance: "my-app-db-2"
+    // This example assumes us-central1, but to set location:
+    // region: "europe-west1"
+  },
+  (event) => {
+    // …
+  }
+);
+
+// Instance with "my-app-db-" prefix, at path "/user/{uid}", where uid ends with @gmail.com.
+// There must be at least one Realtime Database with "my-app-db-*" prefix in this region.
+const onWrittenFunctionInstance = onValueWritten(
+  {
+    ref: "/user/{uid=*@gmail.com}",
+    instance: "my-app-db-*"
+    // This example assumes us-central1, but to set location:
+    // region: "europe-west1"
+  },
+  (event) => {
+    // …
+  }
+);
