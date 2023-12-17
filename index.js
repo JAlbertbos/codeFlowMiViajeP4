@@ -1,13 +1,14 @@
 // The Cloud Functions for Firebase SDK to create Cloud Functions and triggers.
 const {logger} = require("firebase-functions");
 const {onRequest} = require("firebase-functions/v2/https");
+const {onValueCreated} = require("firebase-functions/v2/database");
 const {onDocumentCreated} = require("firebase-functions/v2/firestore");
 
 // The Firebase Admin SDK to access Firestore.
-const {initializeApp} = require("firebase-admin/app");
 const {getFirestore} = require("firebase-admin/firestore");
 
-initializeApp();
+const admin = require("firebase-admin");
+admin.initializeApp();
 
 // Take the text parameter passed to this HTTP endpoint and insert it into
 // Firestore under the path /messages/:documentId/original
