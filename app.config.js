@@ -1,11 +1,11 @@
 export default {
-    name: "codeflowmiviajep3",
-    slug: "codeflowmiviajep3",
+    name: "codeflowmiviajep4",
+    slug: "codeflowmiviajep4",
     version: "1.0.0",
     orientation: "portrait",
-    icon: "./path/to/your/icon.png",
+    icon: "./assets/icon.png",
     splash: {
-      image: "./path/to/your/splash.png",
+      image: "./assets/splash.png",
       resizeMode: "contain",
       backgroundColor: "#ffffff"
     },
@@ -18,11 +18,11 @@ export default {
     },
     android: {
       adaptiveIcon: {
-        foregroundImage: "./path/to/your/foreground.png",
+        foregroundImage: "./assets/foreground.png",
         backgroundColor: "#FFFFFF"
       }
     },
     web: {
-      favicon: "./path/to/your/favicon.png"
+      favicon: "./assets/favicon.png"
     }
   };
