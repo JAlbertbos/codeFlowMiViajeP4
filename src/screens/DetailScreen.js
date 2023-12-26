@@ -105,8 +105,19 @@ const DetailScreen = ({ route, navigation }) => {
         setMediaFileName(fileName);
         console.log(fileName);
 
+      } else if (result.assets[0].uri.endsWith('.jpeg') || result.assets[0].uri.endsWith('.jpg') || result.assets[0].uri.endsWith('.png') || result.assets[0].uri.endsWith('.bmp')) {
+        console.log('Es una imagen');
+        const fileName = `images/${new Date().toISOString()}_${result.assets[0].uri.split('/').pop()}`;   // Genera un nombre de archivo único para la imagen con la ultima parte del uri
+        setMediaUri(result.assets[0].uri);
+        setMediaFileName(fileName);
+    
+      }else if (result.assets[0].uri.endsWith('.mp4') || result.assets[0].uri.endsWith('.avi') || result.assets[0].uri.endsWith('.wmv') || result.assets[0].uri.endsWith('.mkv')) {
+        console.log('Es una video');
+        const fileName = `videos/${new Date().toISOString()}_${result.assets[0].uri.split('/').pop()}`;   // Genera un nombre de archivo único para la imagen con la ultima parte del uri
+        setMediaUri(result.assets[0].uri);
+        setMediaFileName(fileName);
+
       } else {
-        // Otro tipo de archivo 
         console.log('Otro tipo de archivo');
       }
     }  
@@ -251,7 +262,7 @@ const DetailScreen = ({ route, navigation }) => {
 
         {/* Sección: Actividades */}
         <View style={styles.infoContainer}>
-          <Text style={styles.label}>{('Actividades').toUpperCase()}:</Text>
+          <Text style={styles.label}>{('Actividades').toUpperCase()}</Text>
           <View style={{marginTop: 7, marginLeft: 10}}>
             {/* Mapeo de actividades */}
             {currentCity.activities.split(',').map((activity, index) => (
