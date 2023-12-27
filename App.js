@@ -11,9 +11,7 @@ import PlayerScreen from './src/screens/PlayerScreen';
 import { Text, View, Button, Platform } from 'react-native';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
-import {PermissionsAndroid} from 'react-native';
 
-import messaging from '@react-native-firebase/messaging';
   
 // Crea un Stack Navigator para manejar la navegación
 const Stack = createStackNavigator();
