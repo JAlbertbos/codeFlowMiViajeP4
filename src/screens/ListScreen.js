@@ -62,7 +62,8 @@ const ListScreen = ({ navigation }) => {
 
   // Expo notifications ------------------------------------------------------------------------
   const [expoPushToken, setExpoPushToken] = useState('');
-  const [notification, setNotification] = useState(false);
+  const [notification, setNotification] = useState
+  (false);
   const notificationListener = useRef();
   const responseListener = useRef();
 
