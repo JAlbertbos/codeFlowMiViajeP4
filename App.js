@@ -1,6 +1,5 @@
-
 // Importa las dependencias necesarias desde React y React Navigation
-import React from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { AntDesign } from '@expo/vector-icons'; 
@@ -14,6 +13,8 @@ const Stack = createStackNavigator();
 
 // Componente principal de la aplicación
 const App = () => {
+
+  const [documentData, setDocumentData] = useState(null);
 
   // Retorna la estructura de navegación de la aplicación
   return (
@@ -61,6 +62,7 @@ const App = () => {
           options={{ title: 'Video' }}
         />
       </Stack.Navigator>
+
     </NavigationContainer>
   );
 };
