@@ -5,4 +5,4 @@ admin.initializeApp();
 exports.sendPushNotification = functions.firestore.document('cities/{anyId}')
 .onWrite(async (change, context) => {
     console.log("Cambios detectados en la base de datos");
-  });
+  });
