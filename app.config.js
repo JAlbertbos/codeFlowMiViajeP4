@@ -1,6 +1,6 @@
 export default {
-  name: "codeflowmiviajep3",
-  slug: "codeflowmiviajep3",
+  name: "codeflowmiviajep4",
+  slug: "codeflowmiviajep4",
   version: "1.0.0",
   orientation: "portrait",
   splash: {
@@ -16,6 +16,7 @@ export default {
     supportsTablet: true,
   },
   android: {
+    package: "com.codeflow.android",
     adaptiveIcon: {
       backgroundColor: "#FFFFFF",
     },
