@@ -10,8 +10,6 @@ import { initializeApp } from 'firebase/app';                                   
 import { getStorage, ref, uploadBytes, getDownloadURL } from '@firebase/storage';                             // Importa funciones específicas de Firebase Storage
 import { AntDesign } from '@expo/vector-icons';                                                               // Importa iconos de AntDesign desde Expo
 
-import * as Device from 'expo-device';
-import * as Notifications from 'expo-notifications';
 
 // Configuración de las credenciales de Firebase
 const firebaseConfig = {
@@ -60,12 +58,7 @@ const ListScreen = ({ navigation }) => {
     setFilterModalVisible(true);
   };
 
-  // Expo notifications ------------------------------------------------------------------------
-  const [expoPushToken, setExpoPushToken] = useState('');
-  const [notification, setNotification] = useState
-  (false);
-  const notificationListener = useRef();
-  const responseListener = useRef();
+
 
   // Función para cerrar el modal de filtro
   const closeFilterModal = () => {
@@ -248,10 +241,10 @@ const ListScreen = ({ navigation }) => {
     
     // Actualiza la lista de ciudades mostradas llamando a la función fetchCities
     fetchCities(setCities);
-    schedulePushNotification();
+    //schedulePushNotification();
   };
 
-  useEffect(() => {
+ /* useEffect(() => {
     registerForPushNotificationsAsync().then(token => setExpoPushToken(token));
 
     notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
@@ -266,51 +259,7 @@ const ListScreen = ({ navigation }) => {
       Notifications.removeNotificationSubscription(notificationListener.current);
       Notifications.removeNotificationSubscription(responseListener.current);
     };
-  }, []);
-
-  // Expo notifications ------------------------------------------------------------------------
-  async function schedulePushNotification() {
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: "Dia añadido!",
-        body: 'Has añadido un dia y los detalles a la lista.',
-        data: { data: 'goes here' },
-      },
-      trigger: { seconds: 2 },
-    });
-  }
-  async function registerForPushNotificationsAsync() {
-    let token;
-
-    if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync('default', {
-        name: 'default',
-        importance: Notifications.AndroidImportance.MAX,
-        vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#FF231F7C',
-      });
-    }
-
-    if (Device.isDevice) {
-      const { status: existingStatus } = await Notifications.getPermissionsAsync();
-      let finalStatus = existingStatus;
-      if (existingStatus !== 'granted') {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
-      }
-      if (finalStatus !== 'granted') {
-        alert('Failed to get push token for push notification!');
-        return;
-      }
-      // Learn more about projectId:
-      // https://docs.expo.dev/push-notifications/push-notifications-setup/#configure-projectid
-      token = (await Notifications.getExpoPushTokenAsync()).data;
-      console.log(token);
-    } else {
-      alert('Must use physical device for Push Notifications');
-    }
-    return token;
-  }
+  }, []);*/
 
   // Función para navegar a la pantalla de detalles de una ciudad
   const navigateToDetail = (item) => {
