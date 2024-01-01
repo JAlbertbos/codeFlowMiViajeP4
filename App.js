@@ -17,59 +17,37 @@ const Stack = createStackNavigator();
 // Componente principal de la aplicación
 const App = () => {
   
+  // Función asincrónica para solicitar permiso al usuario para recibir notificaciones
   async function requestUserPermission() {
     const authStatus = await messaging().requestPermission();
     const enabled =
-      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
-  
+      authStatus === messaging.AuthorizationStatus.AUTHORIZED || authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
     if (enabled) {
       console.log('Authorization status:', authStatus);
     }
   }
 
-  useEffect(() => { 
-    if(requestUserPermission()){
+  useEffect(() => {
+    // Al cargar el componente, solicita permiso al usuario
+    if (requestUserPermission()) {
+      // Obtiene el token de registro para el dispositivo
       messaging().getToken().then(token => {
-        console.log("Token: " + token);
-      });
+          console.log('Token: ' + token);
+        });
     }
-    // Check whether an initial notification is available
-    messaging()
-      .getInitialNotification()
-      .then(async(remoteMessage) => {
-        if (remoteMessage) {
-          console.log(
-            'Notification caused app to open from quit state:',
-            remoteMessage.notification,
-          );
-        }
-      }); 
-      
-      // Assume a message-notification contains a "type" property in the data payload of the screen to open
 
-    messaging().onNotificationOpenedApp(async(remoteMessage) => {
-      console.log(
-        'Notification caused app to open from background state:',
-        remoteMessage.notification,
-      );  
-    });
-
-    // Register background handler
-    messaging().setBackgroundMessageHandler(async remoteMessage => {
-      console.log('Message handled in the background!', remoteMessage);
-    });
-
+    // Listener para manejar mensajes recibidos 
     const unsubscribe = messaging().onMessage(async remoteMessage => {
-      Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage));
+      const title = remoteMessage.notification.title || 'Título predeterminado';
+      const body = remoteMessage.notification.body || 'Cuerpo predeterminado';
+      Alert.alert(title, body); // Muestra una alerta con el título y cuerpo del mensaje
     });
 
     return unsubscribe;
-
   }, []);
 
-
-
+  // Estado para almacenar los datos del documento
   const [documentData, setDocumentData] = useState(null);
   
   // Retorna la estructura de navegación de la aplicación
