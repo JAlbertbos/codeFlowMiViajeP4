@@ -1,20 +1,9 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 admin.initializeApp();
-
-/*exports.sendPushNotification = functions.firestore.document('cities/{anyId}')
-.onWrite(async (change, context) => {
-    console.log("Cambios detectados en la base de datos");
-  });
-*/
-
-
-
 const messaging = admin.messaging();
 const db = admin.firestore();
 
-// Token del dispositivo
-const deviceToken = admin.messaging().getToken() ;
 
 exports.sendPushNotificationOnWrite = functions.firestore.document('cities/{anyId}')
   .onWrite((change, context) => {
@@ -24,20 +13,31 @@ exports.sendPushNotificationOnWrite = functions.firestore.document('cities/{anyI
     // Lógica para enviar el mensaje de notificación push
     const payload = {
       notification: {
-        title: 'Se ha añadido o eliminado una ciudad',
-        body: `La ciudad ${messageData.name} ha sido añadida o modificada.`, 
+        title: 'Ciudad añadida!',
+        body: `La ciudad "${messageData.name}" ha sido añadida con éxito`, 
       },
     };
 
-    // Enviar el mensaje al dispositivo con el token proporcionado
-    return messaging.sendToDevice(deviceToken, payload)
-      .then(response => {
-        console.log('Notificación enviada con éxito:', response);
-        return null;
-      })
-      .catch(error => {
-        console.error('Ocurrió un error al enviar la notificación:', error);
-      });
+    // Accede a los tokens almacenados en Firestore
+    return db.collection('tokens').get()
+        .then(snapshot => {
+        snapshot.forEach(doc => {
+            const deviceToken = doc.data().token;
+
+            // Enviar notificación a cada dispositivo con su token correspondiente
+            return messaging.sendToDevice(deviceToken, payload)
+            .then(response => {
+                console.log('Notificación enviada con éxito:', response);
+                return null;
+            })
+            .catch(error => {
+                console.error('Error al enviar la notificación:', error);
+            });
+        });
+        })
+        .catch(error => {
+        console.error('Error al obtener los tokens de Firestore:', error);
+        });
   });
 
 exports.sendPushNotificationOnUpdate = functions.firestore.document('cities/{anyId}')
@@ -46,20 +46,31 @@ exports.sendPushNotificationOnUpdate = functions.firestore.document('cities/{any
     const messageData = change.after.data();
 
     // Lógica para enviar el mensaje de notificación push
-    const payload = {
+    const payloadUpdate = {
       notification: {
-        title: 'Se ha modificado una ciudad',
-        body: `La ciudad ${messageData.name} ha sido actualizada.`, 
+        title: 'Ciudad modificada',
+        body: `La ciudad "${messageData.name}" ha sido modificada con éxito`, 
       },
     };
 
-    // Enviar el mensaje al dispositivo con el token proporcionado
-    return messaging.sendToDevice(deviceToken, payload)
-      .then(response => {
-        console.log('Notificación enviada con éxito:', response);
-        return null;
-      })
-      .catch(error => {
-        console.error('Ocurrió un error al enviar la notificación:', error);
-      });
+    // Accede a los tokens almacenados en Firestore
+    return db.collection('tokens').get()
+        .then(snapshot => {
+        snapshot.forEach(doc => {
+            const deviceToken = doc.data().token;
+
+            // Enviar notificación a cada dispositivo con su token correspondiente
+            return messaging.sendToDevice(deviceToken, payloadUpdate)
+            .then(response => {
+                console.log('Notificación enviada con éxito:', response);
+                return null;
+            })
+            .catch(error => {
+                console.error('Error al enviar la notificación:', error);
+            });
+        });
+        })
+        .catch(error => {
+        console.error('Error al obtener los tokens de Firestore:', error);
+        });
   });

@@ -10,6 +10,7 @@ import PlayerScreen from './src/screens/PlayerScreen';
 
 import messaging from '@react-native-firebase/messaging';
 import { Alert } from 'react-native';
+import firestore from '@react-native-firebase/firestore';
 
 // Crea un Stack Navigator para manejar la navegación
 const Stack = createStackNavigator();
@@ -33,7 +34,23 @@ const App = () => {
     if (requestUserPermission()) {
       // Obtiene el token de registro para el dispositivo
       messaging().getToken().then(token => {
-          console.log('Token: ' + token);
+        console.log('Token: ' + token);
+
+        firestore().collection('tokens').where('token', '==', token).get().then(querySnapshot => {
+          if (querySnapshot.empty) {
+            // Si el token no existe, lo agrega a la base de datos
+            firestore().collection('tokens').add({ token }).then(() => {
+                console.log('Token guardado en Firestore');
+              })
+              .catch(error => {
+                console.error('Error al guardar el token en Firestore:', error);
+              });
+          } else {
+            console.log('El token ya existe en Firestore');
+          }
+          }).catch(error => {
+            console.error('Error al buscar el token en Firestore:', error);
+          });
         });
     }
 
