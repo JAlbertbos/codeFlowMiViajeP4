@@ -1,6 +1,6 @@
 
 // Importa los módulos necesarios desde React y React Native
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, FlatList, Text, TouchableOpacity, Modal, Image, TextInput, StyleSheet, Keyboard, ScrollView, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useFocusEffect } from '@react-navigation/native';
@@ -10,6 +10,8 @@ import { initializeApp } from 'firebase/app';                                   
 import { getStorage, ref, uploadBytes, getDownloadURL } from '@firebase/storage';                             // Importa funciones específicas de Firebase Storage
 import { AntDesign } from '@expo/vector-icons';                                                               // Importa iconos de AntDesign desde Expo
 
+import * as Device from 'expo-device';
+import * as Notifications from 'expo-notifications';
 
 // Configuración de las credenciales de Firebase
 const firebaseConfig = {
@@ -21,7 +23,6 @@ const firebaseConfig = {
   appId: "1:239418664935:web:179126ec4a0f3809797f42",
   measurementId: "G-JRF1F928L1"
 };
-
 // Inicializa la aplicación Firebase con la configuración proporcionada
 const app = initializeApp(firebaseConfig);
 // Obtiene una referencia a la base de datos Firestore
@@ -139,7 +140,7 @@ const ListScreen = ({ navigation }) => {
     }, [])
   );
 
-  // Funccion para selecionar un video o una imagen ***********************************************************************************************************************************
+  // Funcion para selecionar un video o una imagen ***********************************************************************************************************************************
   const selectMedia = async () => {
     // Selecciona un archivo multimedia de la biblioteca
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -187,6 +188,7 @@ const ListScreen = ({ navigation }) => {
       }
     }  
   };
+
   // Función para subir un archivo multimedia (imagen o video) al Storage de Firebase *************************************************************************************************
   const uploadMedia = async (uri, fileName) => {
     const response = await fetch(uri);                    // Obtiene el archivo desde la URI

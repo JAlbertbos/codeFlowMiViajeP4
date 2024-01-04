@@ -16,6 +16,7 @@ export default {
     supportsTablet: true,
   },
   android: {
+    package: "com.codeflow.android",
     adaptiveIcon: {
       backgroundColor: "#FFFFFF",
     },
